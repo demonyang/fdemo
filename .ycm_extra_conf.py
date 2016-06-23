@@ -55,7 +55,7 @@ flags = [
 #'-isystem',
 '/usr/include/x86_64-linux-gnu/c++/4.8',
 '-I',
-'.',
+'./src',
 '-I',
 '../',
 '-I',

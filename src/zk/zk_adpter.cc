@@ -3,12 +3,13 @@
 #include "zk/zk_adpter.h"
 #include "glog/logging.h"
 #include <errno.h>
+#include <cstdint>
 
 namespace fdemo{
 namespace zk{
 
 ZooKeeperAdapter::ZooKeeperAdapter()
-    : zk_handle_(NULL),zk_id_(ZS_DISCONN) {}
+    : zk_handle_(NULL),zk_state_(ZS_DISCONN) {}
 
 ZooKeeperAdapter::~ZooKeeperAdapter() {
     if (NULL != zk_handle_) {
@@ -23,14 +24,14 @@ bool ZooKeeperAdapter::Init(const std::string& server_list, const std::string& r
     }
     zk_server_list_ = server_list;
     zk_root_path_ = root_path;
-    if (*zk_root_path_.end() == "/") {
+    if (*zk_root_path_.end() == '/') {
         zk_root_path_.resize(zk_root_path_.size()-1);
     }
     zk_id_ = id;
 
-    zk_handle_ = zookeeper_init((zk_server_list_+zk_root_path_).c_str(), EVENT_CALLBACK, session_timeout, NULL, this, 0);
+    zk_handle_ = zookeeper_init((zk_server_list_+zk_root_path_).c_str(), NULL, session_timeout, NULL, this, 0);
     if (zk_handle_ == NULL) {
-        LOG(ERR) << "zookeeper_init fail :" <<zerror(errno);
+        LOG(ERROR) << "zookeeper_init fail :" <<zerror(errno);
         return false;
     }
     return true;
@@ -64,7 +65,7 @@ bool ZooKeeperAdapter::Create(const std::string& path, const std::string& value,
         ret_path_size = root_path_len + path_len + 11;
         ret_path_buf = new char[ret_path_size];
     }
-    int ret = zoo_create(zk_handle_, path, value, value_len, &ZOO_OPEN_ACL_UNSAFE, flag, ret_path_buf, ret_path_size);
+    int ret = zoo_create(zk_handle_, path.c_str(), value.c_str(), value_len, &ZOO_OPEN_ACL_UNSAFE, flag, ret_path_buf, ret_path_size);
     if (ret == ZOK) {
         if (NULL != ret_path) {
             size_t ret_path_len = strlen(ret_path_buf);
