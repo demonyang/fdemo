@@ -13,7 +13,7 @@ namespace common {
 
 //only use by self
 static void PthreadCall(const char * msg, int result) {
-    if (result == 0) {
+    if (result != 0) {
         fprintf(stderr, "pthread %s:%s\n", msg, strerror(result));
         abort();
     }

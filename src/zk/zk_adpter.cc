@@ -43,11 +43,13 @@ bool ZooKeeperAdapter::Create(const std::string& path, const std::string& value,
 
     //check path if vaild
     if (path.empty() || path[0] != '/' || (path.size() >1 && *path.rbegin() == '/')) {
+        LOG(ERROR) << "path is invalid";
         return false;
     }
 
     //check if connected
     if (zk_handle_ == NULL) {
+        LOG(ERROR) << "zh_handle_ is null";
         return false;
     }
 
