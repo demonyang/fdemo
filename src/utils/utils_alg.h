@@ -5,16 +5,12 @@ namespace utils{
     
 template<typename T>
 class SortSet {
+
 public:
     virtual ~SortSet() {}
     SortSet() {}
 
-    int GetArrayLen(T& array) {
-        return sizeof(array)/ sizeof(array[0]); 
-    }
-
-    void BubbleSort(T sort_array[]) {
-        int arr_len = GetArrayLen(sort_array);
+    void BubbleSort(T sort_array[], int arr_len) {
         //sort
         for (int i=0;i<arr_len;i++){
             for (int j=0;j<arr_len-i-1;j++) {
@@ -29,21 +25,19 @@ public:
         }
     }
 
-    void InsertSort(T sort_array[]) {
-        int arr_len = GetArrayLen(sort_array);
+    void InsertSort(T sort_array[], int arr_len) {
         for(int i=1; i<arr_len;i++) {
             T cur = sort_array[i];
             for (int j=i-1;j>=0;j--) {
                 if(cur < sort_array[j]) {
-                    sort_array[i] = sort_array[j];
+                    sort_array[j+1] = sort_array[j];
                     sort_array[j] = cur;
                 }
             }
         }
     }
 
-    void SelectSort(T sort_array[]) {
-        int arr_len = GetArrayLen(sort_array);
+    void SelectSort(T sort_array[], int arr_len) {
         for (int i=0;i<arr_len;i++) {
             int sel_pos = i;
             for (int j=i;j<arr_len-i;j++){

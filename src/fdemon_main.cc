@@ -5,6 +5,7 @@
 #include "gflags/gflags.h"
 #include "glog/logging.h"
 #include "utils/utils_cmd.h"
+#include "utils/utils_alg.h"
 #include "zk/zk_adpter.h"
 
 DEFINE_string(fdemo_log_prefix, "fdemo", "program's log name");
@@ -33,17 +34,25 @@ int main(int argc, char** argv) {
     std::cout<< "logPath:" << FLAGS_fdemo_log_prefix<<std::endl;
     std::cout<< "address:" << FLAGS_zkServer<<std::endl;
 
-    LOG(INFO)<<"star test of zookeeper";
-    fdemo::zk::ZooKeeperAdapter zk_ins;
+    //LOG(INFO)<<"star test of zookeeper";
+    //fdemo::zk::ZooKeeperAdapter zk_ins;
 
-    int* zk_err  = NULL;
-    bool zk_init_ret = zk_ins.Init(FLAGS_zkServer, "/bamboo", 100000, "id1", zk_err);
-    if (!zk_init_ret) {
-        LOG(ERROR) << "Init zookeeper failed!";
-    }
-    bool c_ret = zk_ins.CreatePersistentNode("/test1", "first", NULL);
-    if (!c_ret) {
-        LOG(ERROR) << "CreatePersistentNode failed!";
+    //int* zk_err  = NULL;
+    //bool zk_init_ret = zk_ins.Init(FLAGS_zkServer, "/bamboo", 100000, "id1", zk_err);
+    //if (!zk_init_ret) {
+    //    LOG(ERROR) << "Init zookeeper failed!";
+    //}
+    //bool c_ret = zk_ins.CreatePersistentNode("/test1", "first", NULL);
+    //if (!c_ret) {
+    //    LOG(ERROR) << "CreatePersistentNode failed!";
+    //}
+    int a1[] = {56,32,4,6,123};
+    fdemo::utils::SortSet<int> mysort; 
+    int len = sizeof(a1)/ sizeof(a1[0]);
+    printf("main len: %d\n", len);
+    mysort.InsertSort(a1, len);
+    for (int i=0;i<5;i++) {
+        printf("num:%d\n", a1[i]);
     }
 
     return 0;
