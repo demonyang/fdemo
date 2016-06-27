@@ -1,5 +1,7 @@
 #ifndef FDEMO_UTILS_UTILS_ALG_H_
 #define FDEMO_UTILS_UTILS_ALG_H_
+
+#include <cstdio>
 namespace fdemo {
 namespace utils{
     
@@ -84,8 +86,9 @@ public:
     void MergeSort(T sort_array[], int left, int right) {
         if (left < right) {
             int mid = left + (right-left)/2;
+            printf("left:%d, mid:%d, right:%d\n", left, mid, right);
             MergeSort(sort_array, left, mid);
-            MergeSort(sort_array, mid, right);
+            MergeSort(sort_array, mid+1, right);
             Merge(sort_array, left, mid, right);
         }
     }

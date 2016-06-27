@@ -6,12 +6,14 @@ LDPATH = -L./thirdparty/lib -lgflags -lpthread -lglog -lzookeeper_mt
 
 ZK_SRC = $(wildcard ./src/zk/*.cc)
 UTIL_SRC = $(wildcard ./src/utils/*.cc)
+COMMON_SRC = $(wildcard ./src/common/*.cc)
 SVR_SRC = ./src/fdemon_main.cc
 
 ZK_OBJ = $(ZK_SRC:.cc=.o)
 UTIL_OBJ = $(UTIL_SRC:.cc=.o)
+COMMON_OBJ = $(COMMON_SRC:.cc=.o)
 SVR_OBJ = $(SVR_SRC:.cc=.o)
-ALL_OBJ = $(SVR_OBJ) $(ZK_OBJ) $(UTIL_OBJ)
+ALL_OBJ = $(SVR_OBJ) $(ZK_OBJ) $(UTIL_OBJ) $(COMMON_OBJ)
 
 all: demo
 

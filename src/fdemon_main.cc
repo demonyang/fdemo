@@ -7,6 +7,7 @@
 #include "utils/utils_cmd.h"
 #include "utils/utils_alg.h"
 #include "zk/zk_adpter.h"
+#include "common/thread.h"
 
 DEFINE_string(fdemo_log_prefix, "fdemo", "program's log name");
 DEFINE_string(zkServer, "127.0.0.1:2181", "zookeeper address");
@@ -50,10 +51,12 @@ int main(int argc, char** argv) {
     fdemo::utils::SortSet<int> mysort; 
     int len = sizeof(a1)/ sizeof(a1[0]);
     printf("main len: %d\n", len);
-    mysort.InsertSort(a1, len);
+    mysort.MergeSort(a1, 0, 4);
     for (int i=0;i<5;i++) {
         printf("num:%d\n", a1[i]);
     }
+    
+    fdemo::common::Thread::schedule(new fdemo::common::PrintFunc());
 
     return 0;
 }

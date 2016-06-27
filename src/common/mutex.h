@@ -1,13 +1,12 @@
 //Author: demon1991yl@gmail.com
 
-
 #ifndef FDEMO_COMMON_MUTEX_H_
 #define FDEMO_COMMON_MUTEX_H_
 
-#include <pthread.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include "pthread.h"
+#include "string.h"
+#include "stdlib.h"
+#include "stdio.h"
 
 namespace common {
 
