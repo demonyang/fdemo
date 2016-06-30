@@ -1,5 +1,3 @@
-//Author: demon1991yl@gmail.com
-
 #ifndef FDEMO_COMMON_MUTEX_H_
 #define FDEMO_COMMON_MUTEX_H_
 

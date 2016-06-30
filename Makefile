@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAG = -Wall -Werror -std=c++11
+CXXFLAG = -Wall -Werror -std=c++11 -g #debug for gdb
 
 INCPATH = -I./thirdparty/include -I./src
 LDPATH = -L./thirdparty/lib -lgflags -lpthread -lglog -lzookeeper_mt

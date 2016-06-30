@@ -18,6 +18,7 @@ ZooKeeperAdapter::~ZooKeeperAdapter() {
 
 bool ZooKeeperAdapter::Init(const std::string& server_list, const std::string& root_path, uint32_t session_timeout, const std::string& id, int* zk_errno) {
     //init zk
+    LOG(INFO)<<"start init zk";
     MutexLock mutex(&state_mutex_);
     if (NULL != zk_handle_) {
         return false;
@@ -31,7 +32,7 @@ bool ZooKeeperAdapter::Init(const std::string& server_list, const std::string& r
 
     zk_handle_ = zookeeper_init((zk_server_list_+zk_root_path_).c_str(), NULL, session_timeout, NULL, this, 0);
     if (zk_handle_ == NULL) {
-        LOG(ERROR) << "zookeeper_init fail :" <<zerror(errno);
+        LOG(ERROR) << "zookeeper_init fail";
         return false;
     }
     return true;
@@ -42,6 +43,7 @@ bool ZooKeeperAdapter::Create(const std::string& path, const std::string& value,
     // TODO
 
     //check path if vaild
+    LOG(INFO)<<"start create";
     if (path.empty() || path[0] != '/' || (path.size() >1 && *path.rbegin() == '/')) {
         LOG(ERROR) << "path is invalid";
         return false;
