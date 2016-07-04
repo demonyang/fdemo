@@ -1,5 +1,6 @@
 #ifndef FDEMO_COMMON_THREAD_H_
 #define FDEMO_COMMON_THREAD_H_
+#define DECLARE_CLASS_NAME(Name) static const char *getClassName() { return #Name; }
 
 #include "common/socketinc.h"
 
@@ -74,6 +75,7 @@ public:
 private:
     int socket_client_;
     bool connected_;
+    Mutex state_lock_;
 };
 
 class SocketSvr {
@@ -83,10 +85,12 @@ public:
     bool Listen(const std::string host, int port);
     void Close();
     void Run();
+    static void AddTotal();
+    static int GetTotal();
 
 private:
     int socket_;
-    Mutex state_lock_;
+    static int total_;
 };
 
 

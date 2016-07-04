@@ -103,6 +103,14 @@ void SocketSvr::Run() {
     }
 }
 
+void SocketSvr::AddTotal() {
+    total_++;
+}
+
+int SocketSvr::GetTotal() {
+    return total_;
+}
+
 void ClientHandle::run() {
     while(1){
         if (connected_) {
@@ -129,6 +137,9 @@ void ClientHandle::run() {
             break;
         }
     }
+    MutexLock mutex(&state_lock_);
+    SocketSvr::AddTotal();
+    LOG(INFO)<<"total:"<<SocketSvr::GetTotal();
     Close();
 }
 
@@ -185,6 +196,8 @@ void ClientHandle::Close() {
         connected_ = false;
     }
 }
+
+int SocketSvr::total_ = 0; //静态变量，不能在头文件中声明定义
 
 } // namespace common
 } // namespace fdemo

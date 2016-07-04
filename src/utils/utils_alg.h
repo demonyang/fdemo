@@ -1,3 +1,5 @@
+//Author: demon1991yl@gmail.com
+
 #ifndef FDEMO_UTILS_UTILS_ALG_H_
 #define FDEMO_UTILS_UTILS_ALG_H_
 
@@ -42,7 +44,7 @@ public:
     void SelectSort(T sort_array[], int arr_len) {
         for (int i=0;i<arr_len;i++) {
             int sel_pos = i;
-            for (int j=i;j<arr_len-i;j++){
+            for (int j=i+1;j<arr_len;j++){
                 if (sort_array[sel_pos]> sort_array[j]) {
                     sel_pos = j;
                 }
@@ -55,6 +57,25 @@ public:
         }
     }
 
+    void MergeSort(T sort_array[], int left, int right) {
+        if (left < right) {
+            int mid = left + (right-left)/2;
+            printf("left:%d, mid:%d, right:%d\n", left, mid, right);
+            MergeSort(sort_array, left, mid);
+            MergeSort(sort_array, mid+1, right);
+            Merge(sort_array, left, mid, right);
+        }
+    }
+
+    void QuickSort(T sort_array[], int start, int end) {
+        if(start < end) {
+            int tmp_position = QuickSort_Partition(sort_array, start, end);
+            QuickSort(sort_array, start, tmp_position-1);
+            QuickSort(sort_array, tmp_position+1, end);
+        }
+    }
+
+private:
     void Merge(T sort_array[], int left, int mid, int right) {
         T *t = new T[right-left+1];
         int i = left;
@@ -83,14 +104,21 @@ public:
         delete []t;
     }
 
-    void MergeSort(T sort_array[], int left, int right) {
-        if (left < right) {
-            int mid = left + (right-left)/2;
-            printf("left:%d, mid:%d, right:%d\n", left, mid, right);
-            MergeSort(sort_array, left, mid);
-            MergeSort(sort_array, mid+1, right);
-            Merge(sort_array, left, mid, right);
+    int QuickSort_Partition(T sort_array[], int start, int end) {
+        int i = start-1;   
+        T x = sort_array[end];
+        for(int j = i+1;j<end;j++) {
+            if (sort_array[j] < x ) {
+                i++;
+                T tmp = sort_array[i];
+                sort_array[i] = sort_array[j];
+                sort_array[j] =  tmp; 
+            }
         }
+        T tmp = sort_array[i+1];
+        sort_array[i+1] = x;
+        sort_array[end] = tmp;
+        return i+1;
     }
 
 };
