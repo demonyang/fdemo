@@ -242,16 +242,12 @@ int MockSlave::onRowsEvent(const RowsEvent& event, EventAction* eventaction) {
             onerow.rowType = event.type;
             onerow.db = table->getDBname();
             onerow.table = table->getTablename();
-            LOG(INFO)<<"1111";
             if(event.type == LogEvent::WRITE_ROWS_EVENTv2){
-                LOG(INFO)<<"2222";
                 unpackRow(&onerow, RowBefore, event, bufByte, table);
             } else if(event.type == LogEvent::UPDATE_ROWS_EVENTv2){
-                LOG(INFO)<<"3333";
                 unpackRow(&onerow, RowBefore, event, bufByte, table);
                 unpackRow(&onerow, RowAfter, event, bufByte, table);
             } else if(event.type == LogEvent::DELETE_ROWS_EVENTv2){
-                LOG(INFO)<<"4444";
                 unpackRow(&onerow, RowBefore, event, bufByte, table);
             }
             rows.push_back(onerow);
@@ -262,6 +258,8 @@ int MockSlave::onRowsEvent(const RowsEvent& event, EventAction* eventaction) {
         }
     }
     if(eventaction->onRowsEvent(event, rows) != 0) {
+        //for test, when in produce environment,should continue
+        //return 0;
         return -1;
     }
     return 0;
@@ -283,7 +281,6 @@ void MockSlave::unpackRow(RowValue* row, RowValueType rvt, const RowsEvent& even
             throw MalformException(errmsg);
         }
         LOG(INFO)<<"i:"<<i<<" ,BitMap:"<<bitmap.isSet(i);
-        LOG(INFO)<<"tttt";
 
         if(!bitmap.isSet(i)) {
             value = column_field->valueString(bytes);
@@ -299,6 +296,7 @@ void MockSlave::unpackRow(RowValue* row, RowValueType rvt, const RowsEvent& even
     }
 }
 
+//mysql5.6 or later
 int MockSlave::setCrc32() {
     const char* sql = "SET @master_binlog_checksum=@@global.binlog_checksum";
     

@@ -17,6 +17,9 @@ public:
     virtual void run();
     virtual int onRowsEvent(const fdemo::slave::RowsEvent& event, std::vector<fdemo::slave::RowValue> rows);
     //virtual int onQueryEvent();
+    int updateSqlHandler(std::vector<fdemo::slave::RowValue> rows);
+    int deleteSqlHandler(std::vector<fdemo::slave::RowValue> rows);
+    int insertSqlHandler(std::vector<fdemo::slave::RowValue> rows);
 
 private:
     fdemo::slave::BinlogInfo master_info_;

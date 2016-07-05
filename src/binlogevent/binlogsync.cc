@@ -24,7 +24,40 @@ void BinlogSync::run() {
     LOG(INFO)<<"BinlogSync::run end!";
 }
 
+//consider parallel replication
+//TODO
 int BinlogSync::onRowsEvent(const fdemo::slave::RowsEvent& event, std::vector<fdemo::slave::RowValue> rows) {
+    int rc = 0;
+    switch (event.type) {
+        case fdemo::slave::LogEvent::WRITE_ROWS_EVENTv2:
+        {
+            rc = insertSqlHandler(rows);
+            break;
+        }
+        case fdemo::slave::LogEvent::DELETE_ROWS_EVENTv2:
+        {
+            rc = deleteSqlHandler(rows);
+            break;
+        }
+        case fdemo::slave::LogEvent::UPDATE_ROWS_EVENTv2:
+        {
+            rc = updateSqlHandler(rows);
+            break;
+        }
+        default:
+            break;
+    }
+    if(rc != 0) {
+        LOG(ERROR)<<"handle RowsEvent error,errno:"<<rc;
+    }
+    return 0;
+}
+
+int BinlogSync::deleteSqlHandler(std::vector<fdemo::slave::RowValue> rows) {
+    for(std::vector<fdemo::slave::RowValue>::iterator it = rows.begin(); it != rows.end(); it++) {
+        char sql[1024];
+        snprintf(sql, sizeof(sql), "delete from %s.%s where ", it->db.c_str(), it->table.c_str());
+    }
     return 0;
 }
 
