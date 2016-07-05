@@ -70,6 +70,7 @@ Runable* ThreadPool::take() {
         pthread_mutex_lock(&mutex_);
         while (IsRunning_ && task_list_.empty()) {
             LOG(INFO)<<"pthread_cond_wait";
+            //pthread_cond_wait()->unlock()->lock()
             pthread_cond_wait(&condition_, &mutex_);
         }
         if (!IsRunning_) {
