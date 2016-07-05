@@ -45,7 +45,7 @@ public:
         for (int i=0;i<arr_len;i++) {
             int sel_pos = i;
             for (int j=i+1;j<arr_len;j++){
-                if (sort_array[sel_pos]> sort_array[j]) {
+                if (sort_array[sel_pos] > sort_array[j]) {
                     sel_pos = j;
                 }
             }

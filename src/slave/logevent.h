@@ -59,6 +59,19 @@ struct LogEvent{
 
 };
 
+//defination of bitmap
+class BitMap{
+public:
+    BitMap(): len_(0) {}
+    ~BitMap(){}
+
+    void unpack(int len, const ByteArray& bytes);
+    bool isSet(int pos);
+private:
+    int len_;
+    std::string bits_;
+};
+
 struct RotateEvent: public LogEvent {
     uint64_t position; //binlog-version > 1
     std::string filename;
@@ -76,6 +89,20 @@ struct TableMapEvent : public LogEvent{
     std::vector<uint8_t> columntype;
 
     TableMapEvent(const LogEvent& header) :LogEvent(header){}
+    virtual void unpack(const ByteArray& bytes);
+};
+
+struct RowsEvent: public LogEvent{
+    uint64_t tableid;
+    uint16_t flags;
+    //version = 2
+    std::string extra_data;
+    uint64_t columncount;
+    BitMap beforeBM;
+    BitMap afterBM;
+    std::string values;
+
+    RowsEvent(const LogEvent& header) :LogEvent(header) {}
     virtual void unpack(const ByteArray& bytes);
 };
 

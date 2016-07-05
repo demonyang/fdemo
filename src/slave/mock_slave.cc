@@ -31,6 +31,7 @@ int MockSlave::Connect(const std::string& host, int port, const std::string& use
 }
 
 int MockSlave::DumpBinlog(uint32_t ServerId, const std::string& filename, uint32_t offset) {
+    //after mysql5.6, before send COM_BINLOG_DUMP, should send the checksum to master
     if(setCrc32() != 0) {
         return -1;
     }
@@ -131,6 +132,11 @@ int MockSlave::processEvent(LogEvent header, ByteArray body, EventAction* eventa
             case LogEvent::WRITE_ROWS_EVENTv2:
             case LogEvent::UPDATE_ROWS_EVENTv2:
             case LogEvent::DELETE_ROWS_EVENTv2:
+            {
+                RowsEvent event(header); 
+                event.unpack(body);
+                rc = onRowsEvent(event, eventaction);
+            }
             default:
                 rc = 0;
                 offset_ = header.logpos;
@@ -179,7 +185,7 @@ int MockSlave::onTableMapEvent(const TableMapEvent& event) {
     }
 
     char sql[1024];
-    int len  = snprintf(sql, sizeof(sql), "SELECT * FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '%s' AND TABLE_NAME = '%s' ORDER BY ORDINAL_POSITION", event.dbname.c_str(), event.tablename.c_str());
+    int len  = snprintf(sql, sizeof(sql), "SELECT COLUMN_NAME,COLUMN_TYPE,CHARACTER_OCTET_LENGTH,ORDINAL_POSITION FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '%s' AND TABLE_NAME = '%s' ORDER BY ORDINAL_POSITION", event.dbname.c_str(), event.tablename.c_str());
 
     MYSQL_RES *res = query(sql, len);
     if (res == NULL) {
@@ -220,6 +226,14 @@ st_mysql_res* MockSlave::query(const char* sql, int len) {
     }
     MYSQL_RES *res = mysql_store_result(schema_);
     return res;
+}
+
+int MockSlave::onRowsEvent(const RowsEvent& event, EventAction* eventaction) {
+    std::map<uint64_t, TableSchema*>::iterator it = tables_.find(event.tableid);
+    if(it == tables_.end()){
+         return 0;
+    }
+    return 0;
 }
 
 int MockSlave::setCrc32() {

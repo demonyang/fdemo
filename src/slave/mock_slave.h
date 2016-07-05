@@ -45,6 +45,7 @@ private:
     int processEvent(LogEvent header, ByteArray body, EventAction* eventaction);
     int onRotateEvent(const RotateEvent& event);
     int onTableMapEvent(const TableMapEvent& evnet);
+    int onRowsEvent(const RowsEvent& event, EventAction* eventaction);
     int setCrc32();
 
     
