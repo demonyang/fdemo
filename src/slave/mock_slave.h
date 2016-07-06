@@ -10,12 +10,21 @@
 #include <mysql/m_ctype.h>
 #include <mysql/sql_common.h>
 #include <mysql/mysql_com.h>
+#include "slave/logevent.h"
+#include <exception>
 
 struct st_mysql;
 struct st_mysql_res;
 
 namespace fdemo{
 namespace slave{
+
+class EventAction {
+public:
+    virtual ~EventAction() {}
+    virtual int onRowsEvent();
+    virtual int onQueryEvent();
+};
 
 class MockSlave {
 
@@ -25,12 +34,15 @@ public:
 
     int Connect(const std::string& host, int port, const std::string& user, const std::string& passwd);
     int DumpBinlog(uint32_t ServerId, const std::string& filename, uint32_t offset);
-    int run();
+    int run(EventAction* eventaction);
     void Close();
 
 private:
-    int readEvent();
-    int processEvent();
+    int readEvent(LogEvent* header, ByteArray* body);
+    int processEvent(LogEvent header, ByteArray body, EventAction* eventaction);
+    int onRotateEvent(const RotateEvent& event);
+    int onTableMapEvent(const TableMapEvent& evnet);
+    
 
 private:
     st_mysql* slave_;

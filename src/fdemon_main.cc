@@ -81,6 +81,8 @@ int main(int argc, char** argv) {
     }
     testsvr.Run();
     */
+    
+    /*ThreadPool test
     fdemo::common::ThreadPool pool(10);
     std::stringstream ss;
     for (int i=0;i<50;i++) {
@@ -97,7 +99,9 @@ int main(int argc, char** argv) {
         sleep(2);
         LOG(INFO)<<"pool size:"<<pool.size();
     }
+    */
 
+    //std::cout<<"num"<<(~(unsigned long) 0)<<std::endl;
     google::ShutdownGoogleLogging();
     return 0;
 }

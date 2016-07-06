@@ -61,17 +61,84 @@ int MockSlave::DumpBinlog(uint32_t ServerId, const std::string& filename, uint32
     return 0;
 }
 
-int MockSlave::run() {
+int MockSlave::run(EventAction* eventaction) {
     int rc = -1;
+    LogEvent header;
+    ByteArray body;
     while(1) {
-        if((rc = readEvent()) != 0){
+        if((rc = readEvent(&header, &body)) != 0){
             break;
         }
-        if((rc = processEvent()) != 0){
+        if((rc = processEvent(header, body, eventaction)) != 0){
             break;
         }
     }
     return rc;
+}
+
+int MockSlave::readEvent(LogEvent* header, ByteArray* body) {
+    unsigned long len = cli_safe_read(slave_);
+    if(len == packet_error || len == 0) {
+        LOG(ERROR)<<"cli_safe_read error len:"<<len<<"errno:err"<<mysql_error(slave_)<<":"<<mysql_errno(slave_);
+        return mysql_errno(slave_);
+    }
+    if (slave_->net.read_pos[0] !=0 || slave_->net.read_pos[0] == 255) {
+        LOG(ERROR)<<"read_pos[0] errno:err"<<mysql_error(slave_)<<":"<<mysql_errno(slave_);
+        return mysql_errno(slave_);
+    }
+    body->assign((char *)slave_->net.read_pos +1, len -1);
+    header->unpack(*body);
+    return 0;
+}
+
+int MockSlave::processEvent(LogEvent header, ByteArray body, EventAction* eventaction) {
+    if(header.type != LogEvent::ROTATE_EVENT && header.logpos <= offset_) {
+        LOG(ERROR)<<"processEvent err, current position:"<<offset_<<"event position:"<<header.logpos<<"event type:"<<header.type;
+        return -1;
+    }
+    int rc;
+    try{
+        switch (header.type) {
+            case LogEvent::ROTATE_EVENT:
+            {
+                LogEvent event(header);
+                event.unpack(body);
+                rc = onRotateEvent(event);
+                break;
+            }
+            case LogEvent::TABLE_MAP_EVNET:
+            {
+                LogEvent event(header);
+                event.unpack(body);
+                rc = onTableMapEvent(event);
+                break;
+            }
+            case LogEvent::WRITE_ROWS_EVENTv2:
+            case LogEvent::UPDATE_ROWS_EVENTv2:
+            case LogEvent::DELETE_ROWS_EVENTv2:
+            default:
+                rc = 0;
+                offset_ = header.logpos;
+                break;
+        }
+
+    } catch(std::exception& e){
+        LOG(ERROR)<<"processEvent exception:"<<e.what();
+    }
+    if(rc != 0) {
+        LOG(ERROR)<<"processEvent error,rc:"<<rc;
+    }
+    return rc;
+}
+
+int MockSlave::onRotateEvent(const RotateEvent& event){
+    filename_ = event.filename;
+    offset_ = event.position;
+    return 0;
+}
+
+int MockSlave::onTableMapEvent(const TableMapEvent& event) {
+
 }
 
 void MockSlave::Close() {
