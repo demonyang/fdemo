@@ -71,6 +71,8 @@ public:
 
 class FieldDatetime: public Field {
 	static const int MAX_DATETIME_WIDTH = 19;      /* YYYY-MM-DD HH:MM:SS */
+    //only declare
+    static int type_;
 public:
 	explicit FieldDatetime(const std::string &name): Field(name) {}
 
@@ -79,6 +81,7 @@ public:
 	virtual std::string valueString(const ByteArray &b);
 
 	virtual std::string valueDefault() { return "1970-01-01 08:00:00"; }
+    static void setColumnMeta(int i) { FieldDatetime::type_ = i; }
 };	//FieldDatetime
 
 class FieldDate: public Field {

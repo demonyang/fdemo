@@ -48,7 +48,7 @@ uint64_t ByteArray::getFixed48() const {
 	return i;
 }
 
-uint64_t ByteArray::getFixed40() const {
+uint64_t ByteArray::getFixed40_little() const {
 	const char *d = get(5);
 	//uint64_t i = uint5korr(d);
 	uint64_t i = mi_uint5korr(d);
@@ -67,9 +67,21 @@ uint32_t ByteArray::getFixed24() const {
 	return i;
 }
 
+uint32_t ByteArray::getFixed24_little() const {
+	const char *d = get(3);
+    uint32_t i = mi_sint3korr(d);
+	return i;
+}
+
 uint16_t ByteArray::getFixed16() const {
 	const char *d = get(2);
 	uint16_t i = uint2korr(d);
+	return i;
+}
+
+uint16_t ByteArray::getFixed16_little() const {
+	const char *d = get(2);
+	uint16_t i = mi_sint2korr(d);
 	return i;
 }
 

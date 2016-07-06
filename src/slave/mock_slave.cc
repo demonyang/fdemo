@@ -201,12 +201,18 @@ int MockSlave::onTableMapEvent(const TableMapEvent& event) {
     kv.first = event.tableid;
     kv.second = new TableSchema(event.dbname, event.tablename);
     MYSQL_ROW row;
+    int row_pos = 0;
     while((row = mysql_fetch_row(res))) {
         while(!kv.second->createField(row[0], row[1], row[2])) {
             LOG(ERROR)<<"schema:"<<event.dbname.c_str()<<'.'<<event.tablename.c_str()<<"field not support";
             delete kv.second;
             return true;
         }
+        //for mysql 5.6 or later
+        if(strcmp(row[1], "datetime") == 0) {
+            FieldDatetime::setColumnMeta((int)event.columnmeta[row_pos]);
+        }
+        row_pos++;
     }
     mysql_free_result(res);
     tables_.insert(kv);

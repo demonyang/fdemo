@@ -11,7 +11,6 @@ namespace fdemo{
 namespace binlogevent{
 
 class BinlogSync: public fdemo::slave::EventAction {
-//class BinlogSync: public fdemo::slave::EventAction {
 public:
     BinlogSync(fdemo::slave::BinlogInfo& info, int poolsize);
     virtual ~BinlogSync();

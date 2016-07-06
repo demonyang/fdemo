@@ -80,8 +80,7 @@ std::string FieldTimestamp::valueString(const ByteArray &b) {
 // base on mysql5.6.25 sql/log_event.cc::log_event_print_value
 std::string FieldDatetime::valueString(const ByteArray &b) {
 	char buf[MAX_DATETIME_WIDTH + 1];
-	int64 value = b.getFixed40() - DATETIMEF_INT_OFS;
-	//int64 value = b.getFixed40();
+	int64 value = b.getFixed40_little() - DATETIMEF_INT_OFS;
     LOG(INFO)<<"datetime value:"<<value<<" ,fieldTypeDecimal:"<<fieldTypeTiny;
 	if (value == 0) {
 		return valueDefault();
@@ -89,13 +88,34 @@ std::string FieldDatetime::valueString(const ByteArray &b) {
     if (value <0) {
         value = -value;
     }
-    //longlong newvalue = value >> 24;
     longlong ymd = value >> 17;
     longlong ym = ymd >> 5;
     longlong hms = value % (1<<17);
     snprintf(buf, sizeof(buf), "%04lld-%02lld-%02lld %02lld:%02lld:%02lld", ym / 13, ym % 13, ymd % (1 << 5), (hms >> 12), (hms >> 6) % (1 << 6), hms % (1 << 6));
+    int frac = 0;
+    switch (type_) {
+        case 0:
+        default:
+            break;
+        case 1:
+        case 2:
+            frac = b.getFixed8() * 10000;
+            break;
+        case 3:
+        case 4:
+            frac = b.getFixed16_little() * 100;
+            break;
+        case 5:
+        case 6:
+            frac = b.getFixed24_little();
+            break;
+    }
+    LOG(INFO)<<"frac:"<<frac;
     return std::string(buf);
 }
+
+//定义并初始化
+int FieldDatetime::type_ = 0;
 
 /*
 //FieldDatetime
@@ -281,6 +301,7 @@ bool TableSchema::createField(const char *name, const char *type, const char *ma
 	} else if (strcmp(type, "date") == 0) {
 		field = new FieldDate(name);
 
+    //depending on mysql version
 	} else if (strcmp(type, "datetime") == 0) {
 		field = new FieldDatetime(name);
 
