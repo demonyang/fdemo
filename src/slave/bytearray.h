@@ -3,10 +3,17 @@
 #ifndef FDEMO_SLAVE_BYTEARRAY_H_
 #define FDEMO_SLAVE_BYTEARRAY_H_
 
-#include<string>
+#include <string>
+#include <string.h>
+#include <stdexcept>
 
 namespace fdemo{
 namespace slave{
+
+class MalformException: public std::length_error {
+public:
+	MalformException(const std::string &msg): std::length_error(msg) {}
+};	//MalformException
 
 class ByteArray{
 public:
@@ -30,6 +37,7 @@ public:
     uint64_t getFixed48() const;
     uint64_t getFixed64() const;
     uint64_t getVarint() const;
+    float getFloat() const;
 
     const char* get(size_t len) const;
     std::string getLeft() const;

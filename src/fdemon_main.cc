@@ -7,6 +7,8 @@
 #include "zk/zk_adpter.h"
 #include "common/thread.h"
 #include "common/threadpool.h"
+#include "binlogevent/binlogsync.h"
+#include "slave/metadata.h"
 
 DEFINE_string(fdemo_log_prefix, "fdemo", "program's log name");
 DEFINE_string(zkServer, "127.0.0.1:2181", "zookeeper address");
@@ -101,7 +103,9 @@ int main(int argc, char** argv) {
     }
     */
 
-    //std::cout<<"num"<<(~(unsigned long) 0)<<std::endl;
+    fdemo::slave::BinlogInfo bi1 = {"svr1", "218.60.99.62", 6301,"root", "test,.6301","mysql-bin.000001",1234, 1234};
+    fdemo::binlogevent::BinlogSync sync(bi1);
+    fdemo::common::Thread::schedule_detach(&sync);
     google::ShutdownGoogleLogging();
     return 0;
 }

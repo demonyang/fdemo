@@ -18,6 +18,7 @@ struct BinlogInfo {
     std::string passwd;
     std::string default_file;
     uint32_t default_offset;
+    uint32_t server_id;
 };
 
 class Metadata {

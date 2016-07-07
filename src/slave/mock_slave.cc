@@ -124,8 +124,9 @@ int MockSlave::processEvent(LogEvent header, ByteArray body, EventAction* eventa
                 break;
         }
 
-    } catch(std::exception& e){
+    } catch(MalformException& e){
         LOG(ERROR)<<"processEvent exception:"<<e.what();
+        return -1;
     }
     if(rc != 0) {
         LOG(ERROR)<<"processEvent error,rc:"<<rc;
@@ -205,6 +206,11 @@ st_mysql_res* MockSlave::query(const char* sql, int len) {
 }
 
 void MockSlave::Close() {
+    for(std::map<uint64_t, TableSchema*>::iterator it = tables_.begin();it != tables_.end();++it) {
+        delete it->second;
+    }
+    tables_.clear();
+
     if(slave_ != NULL) {
         mysql_close(slave_);
         slave_ = NULL;
