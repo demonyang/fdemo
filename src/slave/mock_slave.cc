@@ -77,6 +77,7 @@ int MockSlave::run(EventAction* eventaction) {
 }
 
 int MockSlave::readEvent(LogEvent* header, ByteArray* body) {
+    //cli_safe_read() get one binlog event
     unsigned long len = cli_safe_read(slave_);
     if(len == packet_error || len == 0) {
         LOG(ERROR)<<"cli_safe_read error len:"<<len<<"errno:err"<<mysql_error(slave_)<<":"<<mysql_errno(slave_);
@@ -86,6 +87,7 @@ int MockSlave::readEvent(LogEvent* header, ByteArray* body) {
         LOG(ERROR)<<"read_pos[0] errno:err"<<mysql_error(slave_)<<":"<<mysql_errno(slave_);
         return mysql_errno(slave_);
     }
+    //network streams are request with COM_BINLOG_DUMP and prepend each Binlog Event with 00 OK-byte
     body->assign((char *)slave_->net.read_pos +1, len -1);
     header->unpack(*body);
     return 0;
@@ -138,7 +140,68 @@ int MockSlave::onRotateEvent(const RotateEvent& event){
 }
 
 int MockSlave::onTableMapEvent(const TableMapEvent& event) {
+    std::map<uint64_t, TableSchema*>::iterator tmpSchema = tables_.find(event.tableid);
+    if(tmpSchema != tables_.end()) { //exist a table, 1.skip,2.update
+        std::string tmpSchemaDbTable = tmpSchema->second->getDBname()+ '.' +tmpSchema->second->getTablename();
+        std::string tmpName = event.dbname + '.' + event.tablename;
+        if (tmpName == tmpSchemaDbTable) {
+        //table-id,db,tablen all same, skip
+            return 0;
+        } else {
+        //update exist schema
+            delete tmpSchema->second;
+            tables_.erase(tmpSchema);
+        }
+    } else {
+        for(std::map<uint64_t, TableSchema*>::iterator it = tables_.begin();it != tables_.end();it++){
+            std::string tmpName = event.dbname+'.'+event.tablename;
+            if(tmpName == (it->second->getDBname()+'.'+it->second->getTablename())) {
+                delete it->second;
+                tables_.erase(it);
+                break;
+            }
+        }
+    }
 
+    char sql[1024];
+    int len  = snprintf(sql, sizeof(sql), "SELECT * FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s ORDER BY ORDINAL_POSITION", event.dbname.c_str(), event.tablename.c_str());
+
+    MYSQL_RES *res = query(sql, len);
+    if (res == NULL) {
+        LOG(ERROR)<<"query table schema error, db:"<<event.dbname.c_str()<<" ,table:"<<event.tablename.c_str();
+        return -1;
+    }
+
+    if(mysql_num_rows(res) == 0) {
+        LOG(ERROR)<<"query table schema res 0 rows";
+        return -1;
+    }
+
+    //add new table schema to tables_
+    std::pair<uint64_t, TableSchema*> kv;
+    kv.first = event.tableid;
+    kv.second = new TableSchema(event.dbname, event.tablename);
+    MYSQL_ROW row;
+    while((row = mysql_fetch_row(res))) {
+        while(!kv.second->createField(row[0], row[1], row[2])) {
+            LOG(ERROR)<<"schema:"<<event.dbname.c_str()<<'.'<<event.tablename.c_str()<<"field not support";
+            delete kv.second;
+            return true;
+        }
+    }
+    mysql_free_result(res);
+    tables_.insert(kv);
+    offset_ = event.logpos;
+
+    return 0;
+}
+
+st_mysql_res* MockSlave::query(const char* sql, int len) {
+    if(mysql_real_query(schema_, sql, len) != 0) {
+        return NULL;
+    }
+    MYSQL_RES *res = mysql_store_result(schema_);
+    return res;
 }
 
 void MockSlave::Close() {
