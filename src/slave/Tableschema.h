@@ -13,7 +13,7 @@ class Field {
 
 public:
     Field(const std::string& name): name_(name){}
-    virtual ~Field();
+    virtual ~Field() {}
 
     const std::string& findName() { return name_;}
 private:

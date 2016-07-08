@@ -17,11 +17,9 @@ void BinlogSync::run() {
     if(rc != 0) {
         LOG(ERROR)<<"DumpBinlog failed,file:"<<master_info_.default_file<<", offset:"<<master_info_.default_offset;
     }
-    while(1) {
-        rc = reader.run(NULL);
-        if(rc != 0) {
-            break;
-        }
+    rc = reader.run(NULL);
+    if(rc != 0) {
+        LOG(ERROR)<<"MockSlave::run failed";
     }
     LOG(INFO)<<"BinlogSync::run end!";
 }

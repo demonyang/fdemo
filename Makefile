@@ -1,8 +1,8 @@
 CXX = g++
 CXXFLAG = -Wall -Werror -std=c++11 -g #debug for gdb
 
-INCPATH = -I./thirdparty/include -I./src
-LDPATH = -L./thirdparty/lib -lgflags -lpthread -lglog -lzookeeper_mt -lmysql
+INCPATH = -I./thirdparty/include -Isrc/ -I/usr/include/mysql
+LDPATH = -L./thirdparty/lib -lgflags -lpthread -lglog -lzookeeper_mt
 
 ZK_SRC = $(wildcard ./src/zk/*.cc)
 UTIL_SRC = $(wildcard ./src/utils/*.cc)
@@ -17,14 +17,14 @@ COMMON_OBJ = $(COMMON_SRC:.cc=.o)
 SLAVE_OBJ = $(SLAVE_SRC:.cc=.o)
 BINLOG_OBJ = $(BINLOG_SRC:.cc=.o)
 SVR_OBJ = $(SVR_SRC:.cc=.o)
-ALL_OBJ = $(SVR_OBJ) $(ZK_OBJ) $(UTIL_OBJ) $(COMMON_OBJ) $(SLAVE_OBJ) $(BINLOG_OBJ)
+ALL_OBJ = $(SVR_OBJ) $(ZK_OBJ) $(UTIL_OBJ) $(COMMON_OBJ) $(BINLOG_OBJ) $(SLAVE_OBJ) 
 
 all: demo
 
 demo: $(ALL_OBJ)
-	$(CXX) $(CXXFLAG) -o $@ $^  $(INCPATH) $(LDPATH) 
+	$(CXX) $(CXXFLAG) -o $@ $^  $(LDPATH) ./thirdparty/libmysqlclient_r.so.15
 
 .cc.o:
-	$(CXX) $(CXXFLAG) -c -o $@ $< $(INCPATH) $(LDPATH) 
+	$(CXX) $(CXXFLAG) -c -o $@ $< $(INCPATH)
 clean:
 	rm -f demo src/*/*.o src/*.o

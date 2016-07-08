@@ -21,9 +21,6 @@ struct BinlogInfo {
     uint32_t server_id;
 };
 
-class Metadata {
-};
-
 } // namespace slave
 } //namespace fdemo
 

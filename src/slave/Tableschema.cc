@@ -11,5 +11,9 @@ TableSchema::~TableSchema() {
     }
 }
 
+bool TableSchema::createField(const char* name, const char* type, const char* max_size) {
+    return true;
+}
+
 } //namespace slave
 } //namespace fdemo

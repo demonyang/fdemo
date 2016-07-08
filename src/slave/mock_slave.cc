@@ -2,7 +2,7 @@
 
 #include "slave/mock_slave.h"
 
-#define cli_send_command(mysql, cmd, arg, length) cli_advanced_command(mysql, cmd, NULL, 0, arg, length, 0, NULL)
+//#define cli_send_command(mysql, cmd, arg, length) cli_advanced_command(mysql, cmd, NULL, 0, arg, length, 0, NULL)
 
 namespace fdemo{
 namespace slave{
@@ -30,8 +30,8 @@ int MockSlave::Connect(const std::string& host, int port, const std::string& use
 }
 
 int MockSlave::DumpBinlog(uint32_t ServerId, const std::string& filename, uint32_t offset) {
-    char buf[256];
-    char *ptr = buf;
+    unsigned char buf[256];
+    unsigned char *ptr = buf;
     ServerId_ = ServerId;
     filename_  = filename;
     offset_ = offset;
@@ -43,7 +43,8 @@ int MockSlave::DumpBinlog(uint32_t ServerId, const std::string& filename, uint32
     ptr += 4;
     memcpy(ptr, filename.data(), filename.size());
     ptr += filename.size();
-    if(cli_advanced_command(slave_, COM_BINLOG_DUMP, NULL, 0, buf, ptr - buf, 0, NULL) != 0) {
+    const unsigned char * tmpptr = NULL;
+    if(cli_advanced_command(slave_, COM_BINLOG_DUMP, tmpptr, 0, buf, ptr - buf, 0, NULL) != 0) {
        LOG(ERROR)<<"cli_advanced_command error, reason:"<< mysql_error(slave_);
        return mysql_errno(slave_);
     } 

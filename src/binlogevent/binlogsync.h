@@ -11,7 +11,7 @@ namespace binlogevent{
 class BinlogSync: public fdemo::common::Runable {
 public:
     BinlogSync(fdemo::slave::BinlogInfo& info): master_info_(info) {}
-    virtual ~BinlogSync();
+    virtual ~BinlogSync(){}
 
     void run();
 

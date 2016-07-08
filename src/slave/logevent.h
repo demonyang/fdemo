@@ -10,7 +10,7 @@
 namespace fdemo{
 namespace slave{
 
-struct LogEvent {
+struct LogEvent{
     enum Type {
         UNKNOWN_EVENT = 0x00,
         START_EVENT_V3 = 0x01,
