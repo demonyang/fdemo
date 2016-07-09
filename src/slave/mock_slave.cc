@@ -77,6 +77,7 @@ int MockSlave::run(EventAction* eventaction) {
         if((rc = processEvent(header, body, eventaction)) != 0){
             break;
         }
+        break;
     }
     return rc;
 }
@@ -178,7 +179,7 @@ int MockSlave::onTableMapEvent(const TableMapEvent& event) {
     }
 
     char sql[1024];
-    int len  = snprintf(sql, sizeof(sql), "SELECT * FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s ORDER BY ORDINAL_POSITION", event.dbname.c_str(), event.tablename.c_str());
+    int len  = snprintf(sql, sizeof(sql), "SELECT * FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '%s' AND TABLE_NAME = '%s' ORDER BY ORDINAL_POSITION", event.dbname.c_str(), event.tablename.c_str());
 
     MYSQL_RES *res = query(sql, len);
     if (res == NULL) {
@@ -206,6 +207,9 @@ int MockSlave::onTableMapEvent(const TableMapEvent& event) {
     mysql_free_result(res);
     tables_.insert(kv);
     offset_ = event.logpos;
+    for(std::map<uint64_t, TableSchema*>::iterator it = tables_.begin();it != tables_.end();it++) {
+        LOG(INFO)<<"table-id:"<<it->first<<" ,db:"<<it->second->getDBname()<<" ,table:"<<it->second->getTablename();
+    }
 
     return 0;
 }
