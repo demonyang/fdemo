@@ -26,10 +26,14 @@ int MockSlave::Connect(const std::string& host, int port, const std::string& use
     if ((mysql_real_connect(schema_, host.c_str(), user.c_str(), passwd.c_str(), NULL, port, NULL, 0)) == NULL) {
         LOG(ERROR)<<"mysql_real_connect error,host:"<<host.c_str()<<"port:"<<port<<"reason:"<<mysql_error(schema_);
     }
+    LOG(INFO)<<"connect mysql success,host:"<<host.c_str()<<", port:"<<port;
     return 0;
 }
 
 int MockSlave::DumpBinlog(uint32_t ServerId, const std::string& filename, uint32_t offset) {
+    if(setCrc32() != 0) {
+        return -1;
+    }
     unsigned char buf[256];
     unsigned char *ptr = buf;
     ServerId_ = ServerId;
@@ -43,8 +47,8 @@ int MockSlave::DumpBinlog(uint32_t ServerId, const std::string& filename, uint32
     ptr += 4;
     memcpy(ptr, filename.data(), filename.size());
     ptr += filename.size();
-    const unsigned char * tmpptr = NULL;
-    if(cli_advanced_command(slave_, COM_BINLOG_DUMP, tmpptr, 0, buf, ptr - buf, 0, NULL) != 0) {
+    //const unsigned char * tmpptr = NULL;
+    if(cli_advanced_command(slave_, COM_BINLOG_DUMP, NULL, 0, buf, ptr - buf, 0, NULL) != 0) {
        LOG(ERROR)<<"cli_advanced_command error, reason:"<< mysql_error(slave_);
        return mysql_errno(slave_);
     } 
@@ -80,6 +84,7 @@ int MockSlave::run(EventAction* eventaction) {
 int MockSlave::readEvent(LogEvent* header, ByteArray* body) {
     //cli_safe_read() get one binlog event
     unsigned long len = cli_safe_read(slave_);
+    LOG(INFO)<<"readEvent len:"<<len;
     if(len == packet_error || len == 0) {
         LOG(ERROR)<<"cli_safe_read error len:"<<len<<"errno:err"<<mysql_error(slave_)<<":"<<mysql_errno(slave_);
         return mysql_errno(slave_);
@@ -89,29 +94,35 @@ int MockSlave::readEvent(LogEvent* header, ByteArray* body) {
         return mysql_errno(slave_);
     }
     //network streams are request with COM_BINLOG_DUMP and prepend each Binlog Event with 00 OK-byte
-    body->assign((char *)slave_->net.read_pos +1, len -1);
+    //LOG(INFO)<<"first:"<<slave_->net.read_pos[0];
+    //char* s1 = (char*)(slave_->net.read_pos+1);
+    //char tmpRead[len-4];
+    //strncpy(tmpRead, s1, (size_t)len-4);
+    //body->assign(tmpRead, (size_t)len -5);
+    body->assign((char*)slave_->net.read_pos+1, len -1);
     header->unpack(*body);
     return 0;
 }
 
 int MockSlave::processEvent(LogEvent header, ByteArray body, EventAction* eventaction) {
     if(header.type != LogEvent::ROTATE_EVENT && header.logpos <= offset_) {
-        LOG(ERROR)<<"processEvent err, current position:"<<offset_<<"event position:"<<header.logpos<<"event type:"<<header.type;
+        LOG(ERROR)<<"processEvent err, current position:"<<offset_<<"event position:"<<header.logpos<<"event type:"<<header.type<<",server-id"<<header.server_id;
         return -1;
     }
+    LOG(INFO)<<"processEvent err, current position:"<<offset_<<"event position:"<<header.logpos<<"event type:"<<header.type<<",server-id"<<header.server_id<<",position:"<<body.position();
     int rc;
     try{
         switch (header.type) {
             case LogEvent::ROTATE_EVENT:
             {
-                LogEvent event(header);
+                RotateEvent event(header);
                 event.unpack(body);
                 rc = onRotateEvent(event);
                 break;
             }
             case LogEvent::TABLE_MAP_EVNET:
             {
-                LogEvent event(header);
+                TableMapEvent event(header);
                 event.unpack(body);
                 rc = onTableMapEvent(event);
                 break;
@@ -142,6 +153,7 @@ int MockSlave::onRotateEvent(const RotateEvent& event){
 }
 
 int MockSlave::onTableMapEvent(const TableMapEvent& event) {
+    LOG(INFO)<<"TableMapEvent:"<<event.tableid;
     std::map<uint64_t, TableSchema*>::iterator tmpSchema = tables_.find(event.tableid);
     if(tmpSchema != tables_.end()) { //exist a table, 1.skip,2.update
         std::string tmpSchemaDbTable = tmpSchema->second->getDBname()+ '.' +tmpSchema->second->getTablename();
@@ -170,7 +182,7 @@ int MockSlave::onTableMapEvent(const TableMapEvent& event) {
 
     MYSQL_RES *res = query(sql, len);
     if (res == NULL) {
-        LOG(ERROR)<<"query table schema error, db:"<<event.dbname.c_str()<<" ,table:"<<event.tablename.c_str();
+        LOG(ERROR)<<"query table schema error, db:"<<event.dbname.c_str()<<" ,table:"<<event.tablename.c_str()<<" ,offset_:"<<event.logpos;
         return -1;
     }
 
@@ -204,6 +216,32 @@ st_mysql_res* MockSlave::query(const char* sql, int len) {
     }
     MYSQL_RES *res = mysql_store_result(schema_);
     return res;
+}
+
+int MockSlave::setCrc32() {
+    const char* sql = "SET @master_binlog_checksum=@@global.binlog_checksum";
+    
+    if (mysql_real_query(slave_, sql, strlen(sql)) != 0) {
+        return -1;
+    }
+    const char* sql2 = "SELECT @master_binlog_checksum";
+    if (mysql_real_query(slave_, sql2, strlen(sql2)) != 0) {
+        return -1;
+    }
+    MYSQL_RES *res = mysql_store_result(slave_);
+    if(mysql_num_rows(res) == 0) {
+        LOG(ERROR)<<"query table schema res 0 rows";
+        return -1;
+    }
+    MYSQL_ROW row = mysql_fetch_row(res);
+    if ((strncmp(row[0], "NONE", 10) != 0) && (strncmp(row[0], "CRC32", 10) != 0) ){
+        LOG(ERROR)<<"master_binlog_checksum error, res:"<<row[0];
+        return -1;
+    }
+    mysql_free_result(res);
+    LOG(INFO)<<"set crc32 success";
+
+    return 0;
 }
 
 void MockSlave::Close() {

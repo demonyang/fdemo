@@ -1,5 +1,6 @@
 CXX = g++
-CXXFLAG = -Wall -Werror -std=c++11 -g #debug for gdb
+CXXFLAG = -Wall -Werror -std=c++11 -Wl,-rpath,./thirdparty
+#CXXFLAG = -Wall -Werror -std=c++11 -Wl,-rpath,./thirdparty -ggdb #debug for gdb
 
 INCPATH = -I./thirdparty/include -Isrc/ -I/usr/include/mysql
 LDPATH = -L./thirdparty/lib -lgflags -lpthread -lglog -lzookeeper_mt
