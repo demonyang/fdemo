@@ -21,11 +21,26 @@ struct st_mysql_res;
 namespace fdemo{
 namespace slave{
 
+enum RowValueType{
+    RowBefore,
+    RowAfter,
+};
+
+struct RowValue{
+    LogEvent::Type rowType;
+    std::string db;
+    std::string table;
+    std::vector<std::string> columns;
+    std::vector<std::string> beforeValue;
+    std::vector<std::string> afterValue;
+};
+
 class EventAction {
 public:
+    EventAction(){}
     virtual ~EventAction() {}
-    virtual int onRowsEvent();
-    virtual int onQueryEvent();
+    virtual int onRowsEvent(const RowsEvent& event, std::vector<RowValue> rows) = 0;
+    //virtual int onQueryEvent() = 0;
 };
 
 class MockSlave {
@@ -47,6 +62,8 @@ private:
     int onTableMapEvent(const TableMapEvent& evnet);
     int onRowsEvent(const RowsEvent& event, EventAction* eventaction);
     int setCrc32();
+    //parse one row data
+    void unpackRow(RowValue *row, RowValueType rvt, const RowsEvent& event, const ByteArray& bytes, TableSchema *table);
 
     
 

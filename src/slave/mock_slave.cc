@@ -1,6 +1,7 @@
 //Author: demon1991yl@gmail.com
 
 #include "slave/mock_slave.h"
+#include "string.h"
 
 //#define cli_send_command(mysql, cmd, arg, length) cli_advanced_command(mysql, cmd, NULL, 0, arg, length, 0, NULL)
 
@@ -78,7 +79,7 @@ int MockSlave::run(EventAction* eventaction) {
         if((rc = processEvent(header, body, eventaction)) != 0){
             break;
         }
-        break;
+        //break;
     }
     return rc;
 }
@@ -96,12 +97,8 @@ int MockSlave::readEvent(LogEvent* header, ByteArray* body) {
         return mysql_errno(slave_);
     }
     //network streams are request with COM_BINLOG_DUMP and prepend each Binlog Event with 00 OK-byte
-    //LOG(INFO)<<"first:"<<slave_->net.read_pos[0];
-    //char* s1 = (char*)(slave_->net.read_pos+1);
-    //char tmpRead[len-4];
-    //strncpy(tmpRead, s1, (size_t)len-4);
-    //body->assign(tmpRead, (size_t)len -5);
-    body->assign((char*)slave_->net.read_pos+1, len -1);
+    // newlen = len - 1(00) - 4(checksum) 
+    body->assign((char*)slave_->net.read_pos+1, len -5);
     header->unpack(*body);
     return 0;
 }
@@ -136,6 +133,7 @@ int MockSlave::processEvent(LogEvent header, ByteArray body, EventAction* eventa
                 RowsEvent event(header); 
                 event.unpack(body);
                 rc = onRowsEvent(event, eventaction);
+                break;
             }
             default:
                 rc = 0;
@@ -233,7 +231,72 @@ int MockSlave::onRowsEvent(const RowsEvent& event, EventAction* eventaction) {
     if(it == tables_.end()){
          return 0;
     }
+    std::vector<RowValue> rows;
+    TableSchema* table = it->second;
+    LOG(INFO)<<"row tableid:"<< event.tableid<<" ,columncount:"<<event.columncount;
+    ByteArray bufByte;
+    bufByte.assign((char*)event.values.data(), event.values.size());
+    while(bufByte.reamin() > 0) {
+        try{
+            RowValue onerow;
+            onerow.rowType = event.type;
+            onerow.db = table->getDBname();
+            onerow.table = table->getTablename();
+            LOG(INFO)<<"1111";
+            if(event.type == LogEvent::WRITE_ROWS_EVENTv2){
+                LOG(INFO)<<"2222";
+                unpackRow(&onerow, RowBefore, event, bufByte, table);
+            } else if(event.type == LogEvent::UPDATE_ROWS_EVENTv2){
+                LOG(INFO)<<"3333";
+                unpackRow(&onerow, RowBefore, event, bufByte, table);
+                unpackRow(&onerow, RowAfter, event, bufByte, table);
+            } else if(event.type == LogEvent::DELETE_ROWS_EVENTv2){
+                LOG(INFO)<<"4444";
+                unpackRow(&onerow, RowBefore, event, bufByte, table);
+            }
+            rows.push_back(onerow);
+        } catch (MalformException &e) {
+            LOG(ERROR)<<"unpackRow table:"<<table->getTablename().c_str()<<" ,exception:"<<e.what();
+            offset_ = event.logpos;
+            return -1;
+        }
+    }
+    if(eventaction->onRowsEvent(event, rows) != 0) {
+        return -1;
+    }
     return 0;
+}
+
+void MockSlave::unpackRow(RowValue* row, RowValueType rvt, const RowsEvent& event, const ByteArray& bytes, TableSchema* table){
+
+    //every row start with Bit Map
+    BitMap bitmap;
+    bitmap.unpack((int)event.columncount, bytes);
+    for(uint64_t i =0; i<event.columncount;i++) {
+        Field *column_field = NULL;
+        std::string value;
+
+        column_field = table->getFieldByIndex(i);
+        if(column_field == NULL) {
+            std::string errmsg = "getFieldByIndex is null";
+            LOG(ERROR)<<"unpackRow err:"<<errmsg;
+            throw MalformException(errmsg);
+        }
+        LOG(INFO)<<"i:"<<i<<" ,BitMap:"<<bitmap.isSet(i);
+        LOG(INFO)<<"tttt";
+
+        if(!bitmap.isSet(i)) {
+            value = column_field->valueString(bytes);
+        } else {
+            value = column_field->valueDefault();
+        }
+        row->columns.push_back(column_field->fieldName());
+        if(rvt == RowBefore) {
+            row->beforeValue.push_back(value);
+        } else if(rvt == RowAfter) {
+            row->afterValue.push_back(value);
+        }
+    }
 }
 
 int MockSlave::setCrc32() {

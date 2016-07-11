@@ -47,7 +47,7 @@ void TableMapEvent::unpack(const ByteArray& bytes) {
 void RowsEvent::unpack(const ByteArray& bytes) {
     tableid = bytes.getFixed48();
     flags = bytes.getFixed16();
-    extra_data = bytes.get(bytes.getFixed16());
+    extra_data = bytes.get(bytes.getFixed16()-2);
     columncount = bytes.getVarint();
     if(type == LogEvent::UPDATE_ROWS_EVENTv2 || type ==LogEvent::DELETE_ROWS_EVENTv2) {
         beforeBM.unpack(columncount, bytes);

@@ -8,12 +8,15 @@
 namespace fdemo{
 namespace binlogevent{
 
-class BinlogSync: public fdemo::common::Runable {
+class BinlogSync: public fdemo::common::Runable, public fdemo::slave::EventAction {
+//class BinlogSync: public fdemo::slave::EventAction {
 public:
     BinlogSync(fdemo::slave::BinlogInfo& info): master_info_(info) {}
     virtual ~BinlogSync(){}
 
-    void run();
+    virtual void run();
+    virtual int onRowsEvent(const fdemo::slave::RowsEvent& event, std::vector<fdemo::slave::RowValue> rows);
+    //virtual int onQueryEvent();
 
 private:
     fdemo::slave::BinlogInfo master_info_;
