@@ -243,7 +243,7 @@ int MockSlave::onRowsEvent(const RowsEvent& event, EventAction* eventaction) {
             onerow.db = table->getDBname();
             onerow.table = table->getTablename();
             if(event.type == LogEvent::WRITE_ROWS_EVENTv2){
-                unpackRow(&onerow, RowBefore, event, bufByte, table);
+                unpackRow(&onerow, RowAfter, event, bufByte, table);
             } else if(event.type == LogEvent::UPDATE_ROWS_EVENTv2){
                 unpackRow(&onerow, RowBefore, event, bufByte, table);
                 unpackRow(&onerow, RowAfter, event, bufByte, table);
@@ -268,6 +268,7 @@ int MockSlave::onRowsEvent(const RowsEvent& event, EventAction* eventaction) {
 void MockSlave::unpackRow(RowValue* row, RowValueType rvt, const RowsEvent& event, const ByteArray& bytes, TableSchema* table){
 
     //every row start with Bit Map
+    bool filled = (row->columns.empty() ? false : true);
     BitMap bitmap;
     bitmap.unpack((int)event.columncount, bytes);
     for(uint64_t i =0; i<event.columncount;i++) {
@@ -287,7 +288,10 @@ void MockSlave::unpackRow(RowValue* row, RowValueType rvt, const RowsEvent& even
         } else {
             value = column_field->valueDefault();
         }
-        row->columns.push_back(column_field->fieldName());
+        //avoid add field to row->columns twice
+        if(!filled){
+            row->columns.push_back(column_field->fieldName());
+        }
         if(rvt == RowBefore) {
             row->beforeValue.push_back(value);
         } else if(rvt == RowAfter) {

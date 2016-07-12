@@ -28,6 +28,7 @@ void BinlogSync::run() {
 //TODO
 int BinlogSync::onRowsEvent(const fdemo::slave::RowsEvent& event, std::vector<fdemo::slave::RowValue> rows) {
     int rc = 0;
+    LOG(INFO)<<"start handle rows";
     switch (event.type) {
         case fdemo::slave::LogEvent::WRITE_ROWS_EVENTv2:
         {
@@ -55,8 +56,13 @@ int BinlogSync::onRowsEvent(const fdemo::slave::RowsEvent& event, std::vector<fd
 
 int BinlogSync::deleteSqlHandler(std::vector<fdemo::slave::RowValue> rows) {
     for(std::vector<fdemo::slave::RowValue>::iterator it = rows.begin(); it != rows.end(); it++) {
-        const char* joinchar = "and";
-        std::string whereCluse = strJoin(it->columns, it->beforeValue, joinchar);
+        std::vector<std::string> tmpWhere;
+        for(size_t i = 0; i < it->columns.size(); i++) {
+            std::string str = it->columns[i] + " = " + it->beforeValue[i];
+            tmpWhere.push_back(str);
+        }
+        const char* joinchar = " and ";
+        std::string whereCluse = strJoin(tmpWhere, joinchar);
         char sql[1024];
         snprintf(sql, sizeof(sql), "delete from %s.%s where %s", it->db.c_str(), it->table.c_str(), whereCluse.c_str());
         LOG(INFO)<<"delete sql is:"<< sql;
@@ -65,23 +71,47 @@ int BinlogSync::deleteSqlHandler(std::vector<fdemo::slave::RowValue> rows) {
 }
 
 int BinlogSync::insertSqlHandler(std::vector<fdemo::slave::RowValue> rows) {
+    for(std::vector<fdemo::slave::RowValue>::iterator it = rows.begin(); it != rows.end(); it++){
+        const char* joinchar = " , ";
+        char sql[1024];
+        snprintf(sql, sizeof(sql), "insert into %s.%s (%s) values (%s)", it->db.c_str(), it->table.c_str(), strJoin(it->columns, joinchar).c_str(), strJoin(it->afterValue, joinchar).c_str());
+        LOG(INFO)<<"insert sql is:"<< sql;
+    }
     return 0;
 }
 
 int BinlogSync::updateSqlHandler(std::vector<fdemo::slave::RowValue> rows) {
+    for(std::vector<fdemo::slave::RowValue>::iterator it = rows.begin(); it != rows.end(); it++){
+        std::vector<std::string> beforeJoin;
+        std::vector<std::string> afterJoin;
+        for(size_t i = 0; i < it->columns.size(); i++) {
+            LOG(INFO)<<"i is:"<<i;
+            std::string str = it->columns[i] + " = " + it->beforeValue[i];
+            std::string str1 = it->columns[i] + " = " + it->afterValue[i];
+            beforeJoin.push_back(str);
+            afterJoin.push_back(str1);
+        }
+        const char* joinbefore = " and ";
+        const char* joinafter = " , ";
+        char sql[1024];
+        snprintf(sql, sizeof(sql), "update %s.%s set %s where %s",it->db.c_str(), it->table.c_str(), strJoin(afterJoin, joinafter).c_str(), strJoin(beforeJoin, joinbefore).c_str());
+        LOG(INFO)<<"update sql is:"<< sql;
+    }
     return 0;
 }
 
 
-std::string BinlogSync::strJoin(std::vector<std::string>& str1, std::vector<std::string>& str2, const char* joinchar){
+std::string BinlogSync::strJoin(std::vector<std::string>& str, const char* joinchar){
     std::stringstream outstr;
-    auto begin = str1.begin();
-    if(begin != str1.end()) {
-        outstr<<*begin<<" = "<< str2[0];
+    auto begin = str.begin();
+    outstr<<*begin;
+    if(begin != str.end()) {
+        begin++;
+        for(auto loop = begin;loop != str.end();loop++) {
+            outstr<<joinchar<<*loop;
+        }
     }
-    for(size_t i=1;i<str1.size();i++) {
-        outstr<<" "<<joinchar<<str1[i]<<" = "<<str2[i];
-    }
+    LOG(INFO)<<"join str:"<<outstr.str();
     return outstr.str();
 }
 
