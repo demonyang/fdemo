@@ -4,6 +4,7 @@
 #include "slave/mock_slave.h"
 #include "slave/metadata.h"
 #include "common/thread.h"
+#include <vector>
 
 namespace fdemo{
 namespace binlogevent{
@@ -20,6 +21,8 @@ public:
     int updateSqlHandler(std::vector<fdemo::slave::RowValue> rows);
     int deleteSqlHandler(std::vector<fdemo::slave::RowValue> rows);
     int insertSqlHandler(std::vector<fdemo::slave::RowValue> rows);
+private:
+    std::string strJoin(std::vector<std::string>& str1, std::vector<std::string>& str2, const char* joinchar);
 
 private:
     fdemo::slave::BinlogInfo master_info_;

@@ -103,7 +103,7 @@ int main(int argc, char** argv) {
     }
     */
 
-    fdemo::slave::BinlogInfo bi1 = {"svr1", "218.60.99.62", 6301, "root", "test,.6301", "mysql-bin.000001", 293, 23};
+    fdemo::slave::BinlogInfo bi1 = {"svr1", "218.60.99.62", 6301, "root", "test,.6301", "mysql-bin.000001", 123, 23};
     fdemo::binlogevent::BinlogSync sync(bi1);
     //fdemo::common::Thread::schedule_detach(&sync);
     sync.run();

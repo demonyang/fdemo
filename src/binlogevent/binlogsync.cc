@@ -55,10 +55,34 @@ int BinlogSync::onRowsEvent(const fdemo::slave::RowsEvent& event, std::vector<fd
 
 int BinlogSync::deleteSqlHandler(std::vector<fdemo::slave::RowValue> rows) {
     for(std::vector<fdemo::slave::RowValue>::iterator it = rows.begin(); it != rows.end(); it++) {
+        const char* joinchar = "and";
+        std::string whereCluse = strJoin(it->columns, it->beforeValue, joinchar);
         char sql[1024];
-        snprintf(sql, sizeof(sql), "delete from %s.%s where ", it->db.c_str(), it->table.c_str());
+        snprintf(sql, sizeof(sql), "delete from %s.%s where %s", it->db.c_str(), it->table.c_str(), whereCluse.c_str());
+        LOG(INFO)<<"delete sql is:"<< sql;
     }
     return 0;
+}
+
+int BinlogSync::insertSqlHandler(std::vector<fdemo::slave::RowValue> rows) {
+    return 0;
+}
+
+int BinlogSync::updateSqlHandler(std::vector<fdemo::slave::RowValue> rows) {
+    return 0;
+}
+
+
+std::string BinlogSync::strJoin(std::vector<std::string>& str1, std::vector<std::string>& str2, const char* joinchar){
+    std::stringstream outstr;
+    auto begin = str1.begin();
+    if(begin != str1.end()) {
+        outstr<<*begin<<" = "<< str2[0];
+    }
+    for(size_t i=1;i<str1.size();i++) {
+        outstr<<" "<<joinchar<<str1[i]<<" = "<<str2[i];
+    }
+    return outstr.str();
 }
 
 } // namespace binlogevent
