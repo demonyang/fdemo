@@ -93,6 +93,7 @@ Runable* ThreadPool::take(int taskQueneId) {
         //    //pthread_cond_wait()->unlock()->lock()
         //    pthread_cond_wait(&condition_, &mutex_);
         //}
+        //由于改成多个任务队列，不能使用条件变量,要一直主动去task列表里面取
         if (!IsRunning_) {
             pthread_mutex_unlock(&mutex_);
             break;
@@ -102,6 +103,7 @@ Runable* ThreadPool::take(int taskQueneId) {
             continue;
         }
         assert(!taskQuene->second.empty());
+        LOG(INFO)<<"take a task from "<<taskQueneId;
         task = taskQuene->second.front();
         taskQuene->second.pop_front();
         pthread_mutex_unlock(&mutex_);

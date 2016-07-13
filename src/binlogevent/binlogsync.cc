@@ -37,14 +37,14 @@ void BinlogSync::run() {
 //consider parallel replication
 //TODO
 int BinlogSync::onRowsEvent(const fdemo::slave::RowsEvent& event, std::vector<fdemo::slave::RowValue> rows) {
-    LOG(INFO)<<"start onRowsEvent, event type:"<<event.type;
+    //LOG(INFO)<<"start onRowsEvent, event type:"<<event.type;
     int taskQueneId = event.tableid % size_;
     pool_->AddTask2TaskMap(new EventHandler(event, rows), taskQueneId);
     return 0;
 }
 
 void EventHandler::run() {
-    LOG(INFO)<<"start run run, event type:"<<event_.type;
+    LOG(INFO)<<"start run, event type:"<<event_.type;
     int rc = 0;
     switch (event_.type) {
         case fdemo::slave::LogEvent::WRITE_ROWS_EVENTv2:
@@ -130,7 +130,7 @@ std::string EventHandler::strJoin(std::vector<std::string>& str, const char* joi
             outstr<<joinchar<<*loop;
         }
     }
-    LOG(INFO)<<"join str:"<<outstr.str();
+    //LOG(INFO)<<"join str:"<<outstr.str();
     return outstr.str();
 }
 
