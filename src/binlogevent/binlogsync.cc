@@ -4,6 +4,16 @@
 namespace fdemo{
 namespace binlogevent{
 
+BinlogSync::BinlogSync(fdemo::slave::BinlogInfo& info, int poolsize) {
+    master_info_ = info;
+    pool_ = new fdemo::common::ThreadPool(poolsize);
+    size_ = poolsize;
+}
+
+BinlogSync::~BinlogSync(){
+    pool_->stop();
+}
+
 void BinlogSync::run() {
     int rc = 0;
     fdemo::slave::MockSlave reader;
@@ -27,35 +37,45 @@ void BinlogSync::run() {
 //consider parallel replication
 //TODO
 int BinlogSync::onRowsEvent(const fdemo::slave::RowsEvent& event, std::vector<fdemo::slave::RowValue> rows) {
+    LOG(INFO)<<"start onRowsEvent, event type:"<<event.type;
+    int taskQueneId = event.tableid % size_;
+    pool_->AddTask2TaskMap(new EventHandler(event, rows), taskQueneId);
+    return 0;
+}
+
+void EventHandler::run() {
+    LOG(INFO)<<"start run run, event type:"<<event_.type;
     int rc = 0;
-    LOG(INFO)<<"start handle rows";
-    switch (event.type) {
+    switch (event_.type) {
         case fdemo::slave::LogEvent::WRITE_ROWS_EVENTv2:
         {
-            rc = insertSqlHandler(rows);
+            rc = insertSqlHandler();
             break;
         }
         case fdemo::slave::LogEvent::DELETE_ROWS_EVENTv2:
         {
-            rc = deleteSqlHandler(rows);
+            rc = deleteSqlHandler();
             break;
         }
         case fdemo::slave::LogEvent::UPDATE_ROWS_EVENTv2:
         {
-            rc = updateSqlHandler(rows);
+            rc = updateSqlHandler();
             break;
         }
         default:
+        {
+            LOG(INFO)<<"default event type:"<<event_.type;
             break;
+        }
     }
     if(rc != 0) {
         LOG(ERROR)<<"handle RowsEvent error,errno:"<<rc;
     }
-    return 0;
+    return;
 }
 
-int BinlogSync::deleteSqlHandler(std::vector<fdemo::slave::RowValue> rows) {
-    for(std::vector<fdemo::slave::RowValue>::iterator it = rows.begin(); it != rows.end(); it++) {
+int EventHandler::deleteSqlHandler() {
+    for(std::vector<fdemo::slave::RowValue>::iterator it = rows_.begin(); it != rows_.end(); it++) {
         std::vector<std::string> tmpWhere;
         for(size_t i = 0; i < it->columns.size(); i++) {
             std::string str = it->columns[i] + " = " + it->beforeValue[i];
@@ -70,8 +90,8 @@ int BinlogSync::deleteSqlHandler(std::vector<fdemo::slave::RowValue> rows) {
     return 0;
 }
 
-int BinlogSync::insertSqlHandler(std::vector<fdemo::slave::RowValue> rows) {
-    for(std::vector<fdemo::slave::RowValue>::iterator it = rows.begin(); it != rows.end(); it++){
+int EventHandler::insertSqlHandler() {
+    for(std::vector<fdemo::slave::RowValue>::iterator it = rows_.begin(); it != rows_.end(); it++){
         const char* joinchar = " , ";
         char sql[1024];
         snprintf(sql, sizeof(sql), "insert into %s.%s (%s) values (%s)", it->db.c_str(), it->table.c_str(), strJoin(it->columns, joinchar).c_str(), strJoin(it->afterValue, joinchar).c_str());
@@ -80,8 +100,8 @@ int BinlogSync::insertSqlHandler(std::vector<fdemo::slave::RowValue> rows) {
     return 0;
 }
 
-int BinlogSync::updateSqlHandler(std::vector<fdemo::slave::RowValue> rows) {
-    for(std::vector<fdemo::slave::RowValue>::iterator it = rows.begin(); it != rows.end(); it++){
+int EventHandler::updateSqlHandler() {
+    for(std::vector<fdemo::slave::RowValue>::iterator it = rows_.begin(); it != rows_.end(); it++){
         std::vector<std::string> beforeJoin;
         std::vector<std::string> afterJoin;
         for(size_t i = 0; i < it->columns.size(); i++) {
@@ -100,14 +120,13 @@ int BinlogSync::updateSqlHandler(std::vector<fdemo::slave::RowValue> rows) {
     return 0;
 }
 
-
-std::string BinlogSync::strJoin(std::vector<std::string>& str, const char* joinchar){
+std::string EventHandler::strJoin(std::vector<std::string>& str, const char* joinchar){
     std::stringstream outstr;
-    auto begin = str.begin();
+    std::vector<std::string>::iterator begin = str.begin();
     outstr<<*begin;
     if(begin != str.end()) {
         begin++;
-        for(auto loop = begin;loop != str.end();loop++) {
+        for(std::vector<std::string>::iterator loop = begin;loop != str.end();loop++) {
             outstr<<joinchar<<*loop;
         }
     }

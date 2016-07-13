@@ -2,6 +2,7 @@
 #define FDEMO_COMMON_THREADPOOL_H_
 
 #include<deque>
+#include<map>
 #include<assert.h>
 #include "common/mutex.h"
 #include "common/thread.h"
@@ -10,14 +11,6 @@
 namespace fdemo{
 namespace common{
 
-class MockTask: public Runable {
-public:
-    MockTask(const std::string& arg):arg_(arg) {}
-    virtual void run();
-private:
-    const std::string arg_;
-};
-
 class ThreadPool {
 
 public:
@@ -25,9 +18,10 @@ public:
     ~ThreadPool();
 
     size_t AddTask(Runable* func);
+    size_t AddTask2TaskMap(Runable* func, int taskMapId);
     void stop();
     size_t size();
-    Runable* take();
+    Runable* take(int taskQueneId);
 
 private:
     ThreadPool(const ThreadPool&);
@@ -41,11 +35,17 @@ private:
     pthread_t*  threads_;
 
     std::deque<Runable*> task_list_;
+    std::map<int, std::deque<Runable*>> task_map_;
     Mutex state_lock_;
     int Maxnum_;
     pthread_cond_t condition_;
     pthread_mutex_t mutex_;
     volatile bool IsRunning_;
+};
+
+struct TakeTask {
+    ThreadPool*  pool;
+    int    taskQueneId;
 };
 
 } //namespace common

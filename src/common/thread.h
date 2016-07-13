@@ -9,8 +9,7 @@ namespace common{
 
 class Runable {
 public:
-    Runable() {};
-    virtual ~Runable() {};
+    virtual ~Runable() {}
     virtual void run() = 0;
 };
 
@@ -23,6 +22,14 @@ public:
 private:
     void (*func_)();
 
+};
+
+class MockTask: public Runable {
+public:
+    MockTask(const std::string& arg):arg_(arg) {}
+    virtual void run();
+private:
+    const std::string arg_;
 };
 
 class Thread {

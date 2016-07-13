@@ -267,8 +267,8 @@ int MockSlave::onRowsEvent(const RowsEvent& event, EventAction* eventaction) {
 
 void MockSlave::unpackRow(RowValue* row, RowValueType rvt, const RowsEvent& event, const ByteArray& bytes, TableSchema* table){
 
-    //every row start with Bit Map
     bool filled = (row->columns.empty() ? false : true);
+    //every row start with Bit Map
     BitMap bitmap;
     bitmap.unpack((int)event.columncount, bytes);
     for(uint64_t i =0; i<event.columncount;i++) {

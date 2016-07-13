@@ -86,10 +86,12 @@ int main(int argc, char** argv) {
     
     /*ThreadPool test
     fdemo::common::ThreadPool pool(10);
+    LOG(INFO)<<"ThreadPool create end!";
     std::stringstream ss;
     for (int i=0;i<50;i++) {
         ss<<"I am MockTask, num:"<<i;
-        pool.AddTask(new fdemo::common::MockTask(ss.str()));
+        //pool.AddTask(new fdemo::common::MockTask(ss.str()));
+        pool.AddTask2TaskMap(new fdemo::common::MockTask(ss.str()), i%10);
         ss.str("");
     }
     while(1) {
@@ -104,9 +106,10 @@ int main(int argc, char** argv) {
     */
 
     fdemo::slave::BinlogInfo bi1 = {"svr1", "218.60.99.62", 6301, "root", "test,.6301", "mysql-bin.000001", 123, 23};
-    fdemo::binlogevent::BinlogSync sync(bi1);
+    fdemo::binlogevent::BinlogSync sync(bi1, 3);
     //fdemo::common::Thread::schedule_detach(&sync);
     sync.run();
+
     google::ShutdownGoogleLogging();
     return 0;
 }

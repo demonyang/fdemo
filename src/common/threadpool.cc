@@ -5,22 +5,24 @@
 namespace fdemo{
 namespace common{
 
-void MockTask::run() {
-    sleep(5);
-    std::cout<<"task arg:"<< arg_<<std::endl;
-}
-
 ThreadPool::ThreadPool(int thread_num){
     Maxnum_ = thread_num;
     IsRunning_ = true;
+    for(int i = 0;i<thread_num;i++){
+        std::pair<int, std::deque<Runable*>> kv;
+        kv.first = i;
+        task_map_.insert(kv);
+    }
     createThreads();
 }
 ThreadPool::~ThreadPool() {
     stop();
-    for (std::deque<Runable*>::iterator it = task_list_.begin();it != task_list_.end();++it){
-        delete *it;
+    for(std::map<int,std::deque<Runable*>>::iterator loop = task_map_.begin(); loop != task_map_.end(); loop++){
+        for(std::deque<Runable*>::iterator loop1 = loop->second.begin(); loop1 != loop->second.end();loop1++) {
+            delete *loop1;
+        }
+        loop->second.clear();
     }
-    task_list_.clear();
 }
 
 void ThreadPool::createThreads() {
@@ -28,7 +30,9 @@ void ThreadPool::createThreads() {
     pthread_cond_init(&condition_, NULL);
     threads_ = (pthread_t*)malloc(sizeof(pthread_t) * Maxnum_);
     for(int i = 0;i<Maxnum_;i++) {
-        pthread_create(&threads_[i], NULL, &ThreadPool::proc, this);
+        TakeTask* threadRrg = new TakeTask{this, i};
+        LOG(INFO)<<"taketask i:"<<threadRrg->taskQueneId;
+        pthread_create(&threads_[i], NULL, &ThreadPool::proc, (void*)threadRrg );
     }
 }
 
@@ -36,6 +40,18 @@ size_t ThreadPool::AddTask(Runable* func) {
     MutexLock mutex(&state_lock_);
     task_list_.push_back(func);
     int size = task_list_.size();
+    pthread_cond_signal(&condition_);
+    return size;
+}
+
+size_t ThreadPool::AddTask2TaskMap(Runable* func, int taskMapId){
+    MutexLock mutex(&state_lock_);
+    std::map<int, std::deque<Runable*>>::iterator it = task_map_.find(taskMapId);
+    if(it == task_map_.end()) {
+        return -1;
+    }
+    it->second.push_back(func);
+    int size = it->second.size();
     pthread_cond_signal(&condition_);
     return size;
 }
@@ -60,30 +76,34 @@ void ThreadPool::stop(){
 
 size_t ThreadPool::size() {
     MutexLock mutex(&state_lock_);
-    int size = task_list_.size();
+    int size = 0;
+    for(std::map<int, std::deque<Runable*>>::iterator it = task_map_.begin(); it != task_map_.end();it++){
+        size += it->second.size();
+    }
     return size;
 }
 
-Runable* ThreadPool::take() {
+Runable* ThreadPool::take(int taskQueneId) {
     Runable * task = NULL;
+    std::map<int, std::deque<Runable*>>::iterator taskQuene = task_map_.find(taskQueneId);
     while(!task) {
         pthread_mutex_lock(&mutex_);
-        while (IsRunning_ && task_list_.empty()) {
-            LOG(INFO)<<"pthread_cond_wait";
-            //pthread_cond_wait()->unlock()->lock()
-            pthread_cond_wait(&condition_, &mutex_);
-        }
+        //while (IsRunning_ && taskQuene->second.empty()) {
+        //    LOG(INFO)<<"pthread_cond_wait, taskQueneId:"<<taskQueneId;
+        //    //pthread_cond_wait()->unlock()->lock()
+        //    pthread_cond_wait(&condition_, &mutex_);
+        //}
         if (!IsRunning_) {
             pthread_mutex_unlock(&mutex_);
             break;
 
-        } else if (task_list_.empty()) {
+        } else if (taskQuene->second.empty()) {
             pthread_mutex_unlock(&mutex_);
             continue;
         }
-        assert(!task_list_.empty());
-        task = task_list_.front();
-        task_list_.pop_front();
+        assert(!taskQuene->second.empty());
+        task = taskQuene->second.front();
+        taskQuene->second.pop_front();
         pthread_mutex_unlock(&mutex_);
     }
     return task;
@@ -91,16 +111,19 @@ Runable* ThreadPool::take() {
 
 void* ThreadPool::proc(void *arg) {
     pthread_t tid = pthread_self();
-    ThreadPool *pool = static_cast<ThreadPool*>(arg);
-    while(pool->IsRunning_) {
-        Runable * run_func = pool->take();
+    TakeTask *takeArg = static_cast<TakeTask*>(arg);
+    LOG(INFO)<<"i'am tid:"<<tid<<" ,taskid:"<<takeArg->taskQueneId;
+    while(takeArg->pool->IsRunning_) {
+        Runable * run_func = takeArg->pool->take(takeArg->taskQueneId);
         if(!run_func) {
             LOG(ERROR)<<tid<<":pool take is null";
-                break;
+            continue;
+            //break;
         }
         assert(run_func);
         run_func->run();
     }
+    delete takeArg;
     return NULL;
 }
 

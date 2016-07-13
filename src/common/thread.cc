@@ -10,6 +10,11 @@ void FuncWrap::run() {
     (*func_)();    
 }
 
+void MockTask::run() {
+    sleep(5);
+    std::cout<<"task arg:"<< arg_<<std::endl;
+}
+
 void Thread::schedule(Runable* func) {
     Thread * thread =  new Thread(func);
     bool ret = thread->join();

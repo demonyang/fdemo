@@ -37,7 +37,6 @@ struct RowValue{
 
 class EventAction {
 public:
-    EventAction(){}
     virtual ~EventAction() {}
     virtual int onRowsEvent(const RowsEvent& event, std::vector<RowValue> rows) = 0;
     //virtual int onQueryEvent() = 0;

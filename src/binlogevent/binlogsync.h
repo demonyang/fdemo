@@ -3,29 +3,44 @@
 
 #include "slave/mock_slave.h"
 #include "slave/metadata.h"
+#include "common/threadpool.h"
 #include "common/thread.h"
 #include <vector>
 
 namespace fdemo{
 namespace binlogevent{
 
-class BinlogSync: public fdemo::common::Runable, public fdemo::slave::EventAction {
+class BinlogSync: public fdemo::slave::EventAction {
 //class BinlogSync: public fdemo::slave::EventAction {
 public:
-    BinlogSync(fdemo::slave::BinlogInfo& info): master_info_(info) {}
-    virtual ~BinlogSync(){}
-
+    BinlogSync(fdemo::slave::BinlogInfo& info, int poolsize);
+    virtual ~BinlogSync();
     virtual void run();
+
     virtual int onRowsEvent(const fdemo::slave::RowsEvent& event, std::vector<fdemo::slave::RowValue> rows);
     //virtual int onQueryEvent();
-    int updateSqlHandler(std::vector<fdemo::slave::RowValue> rows);
-    int deleteSqlHandler(std::vector<fdemo::slave::RowValue> rows);
-    int insertSqlHandler(std::vector<fdemo::slave::RowValue> rows);
+
+private:
+    fdemo::slave::BinlogInfo master_info_;
+    fdemo::common::ThreadPool* pool_;
+    int size_;
+};
+
+class EventHandler: public fdemo::common::Runable {
+public:
+    EventHandler(const fdemo::slave::RowsEvent& event ,std::vector<fdemo::slave::RowValue> rows) : rows_(rows), event_(event) {}
+    virtual ~EventHandler() {}
+    virtual void run();
+    int updateSqlHandler();
+    int deleteSqlHandler();
+    int insertSqlHandler();
 private:
     std::string strJoin(std::vector<std::string>& str, const char* joinchar);
 
 private:
-    fdemo::slave::BinlogInfo master_info_;
+    std::vector<fdemo::slave::RowValue> rows_;
+    const fdemo::slave::RowsEvent event_; //not const fdemo::slave::RowsEvent& event_;
+
 };
 
 } //namespace binlogevent
