@@ -35,6 +35,8 @@ void BinlogSync::run() {
 }
 
 //consider parallel replication
+//1. according to table's name to parallel
+//2. according to pri key to parallel
 //TODO
 int BinlogSync::onRowsEvent(const fdemo::slave::RowsEvent& event, std::vector<fdemo::slave::RowValue> rows) {
     //LOG(INFO)<<"start onRowsEvent, event type:"<<event.type;
