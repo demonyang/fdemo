@@ -3,6 +3,13 @@
 #ifndef FDEMO_SLAVE_BYTEARRAY_H_
 #define FDEMO_SLAVE_BYTEARRAY_H_
 
+#define mi_uint5korr(A) ((ulonglong)(((uint32) (((uchar*) (A))[4])) +\
+                                    (((uint32) (((uchar*) (A))[3])) << 8) +\
+                                    (((uint32) (((uchar*) (A))[2])) << 16) +\
+                                    (((uint32) (((uchar*) (A))[1])) << 24)) +\
+                                    (((ulonglong) (((uchar*) (A))[0])) << 32))
+
+#define DATETIMEF_INT_OFS 0x8000000000LL
 #include <string>
 #include <string.h>
 #include <stdexcept>
@@ -34,6 +41,7 @@ public:
     uint16_t getFixed16() const;
     uint32_t getFixed24() const;
     uint32_t getFixed32() const;
+    uint64_t getFixed40() const;
     uint64_t getFixed48() const;
     uint64_t getFixed64() const;
     uint64_t getVarint() const;

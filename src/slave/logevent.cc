@@ -42,6 +42,57 @@ void TableMapEvent::unpack(const ByteArray& bytes) {
         uint8_t t = bytes.getFixed8();
         columntype.push_back(t);
     }
+    ColumnMeta cm;
+    ByteArray ba;
+    std::string assignStr = bytes.getLeft();
+    ba.assign((char*)assignStr.data(), assignStr.size()-(columncount+8)/7);
+    cm.unpack(ba, columntype);
+    columnmeta = cm.meta;
+}
+
+void ColumnMeta::unpack(const ByteArray& bytes, std::vector<uint8_t> columntype){
+    for(auto loop = columntype.begin();loop != columntype.end(); loop++) {
+        switch (*loop) {
+            case fieldTypeTinyBLOB:
+            case fieldTypeBLOB:
+            case fieldTypeMediumBLOB:
+            case fieldTypeLongBLOB:
+            case fieldTypeDouble:
+            case fieldTypeFloat:
+            case fieldTypeGeometry:
+            case fieldTypeTimestamp2:
+            case fieldTypeDatetime2:
+            case fieldTypeTime2:
+            {
+                uint8_t t = bytes.getFixed8();
+                meta.push_back(t);
+                break;
+            }
+            //attention bigendian
+            case fieldTypeSet:
+            case fieldTypeString:
+            case fieldTypeEnum:
+            case fieldTypeNewDecimal:
+            {
+                const char* d = bytes.get(2);
+                uint16_t i = (uint16_t) (((uint16_t) ((unsigned char) (d)[1])) + ((uint16_t) ((unsigned char) (d)[0]) << 8));
+                meta.push_back(i);
+                break;
+            }
+            case fieldTypeBit:
+            case fieldTypeVarChar:
+            {
+                uint16_t t =bytes.getFixed16();
+                meta.push_back(t);
+                break;
+            }
+            default:
+            {
+            meta.push_back(0);
+            break;
+            }
+        }
+    }
 }
 
 void RowsEvent::unpack(const ByteArray& bytes) {

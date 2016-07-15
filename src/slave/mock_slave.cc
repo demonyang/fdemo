@@ -288,6 +288,7 @@ void MockSlave::unpackRow(RowValue* row, RowValueType rvt, const RowsEvent& even
         } else {
             value = column_field->valueDefault();
         }
+        LOG(INFO)<<"bit map value:"<<value;
         //avoid add field to row->columns twice
         if(!filled){
             row->columns.push_back(column_field->fieldName());

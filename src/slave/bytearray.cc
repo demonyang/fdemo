@@ -42,7 +42,16 @@ uint64_t ByteArray::getFixed64() const {
 
 uint64_t ByteArray::getFixed48() const {
 	const char *d = get(6);
-	uint64_t i = uint5korr(d);
+	uint64_t i = uint6korr(d);
+    //not sure?
+	//uint64_t i = uint5korr(d);
+	return i;
+}
+
+uint64_t ByteArray::getFixed40() const {
+	const char *d = get(5);
+	//uint64_t i = uint5korr(d);
+	uint64_t i = mi_uint5korr(d);
 	return i;
 }
 
@@ -71,6 +80,7 @@ uint8_t ByteArray::getFixed8() const {
 }
 
 const char *ByteArray::get(size_t len) const {
+    //LOG(INFO)<<"size:"<<size_<<" ,len:"<<len<<" ,offset_"<<offset_;
 	if (size_ < len + offset_) {
 		throw MalformException("byte array overflow");
 	}

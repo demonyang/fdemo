@@ -105,7 +105,7 @@ int EventHandler::updateSqlHandler() {
         std::vector<std::string> beforeJoin;
         std::vector<std::string> afterJoin;
         for(size_t i = 0; i < it->columns.size(); i++) {
-            LOG(INFO)<<"i is:"<<i;
+            //LOG(INFO)<<"i is:"<<i;
             std::string str = it->columns[i] + " = " + it->beforeValue[i];
             std::string str1 = it->columns[i] + " = " + it->afterValue[i];
             beforeJoin.push_back(str);

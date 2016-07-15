@@ -10,6 +10,39 @@
 namespace fdemo{
 namespace slave{
 
+enum FieldType {
+    fieldTypeDecimal,
+    fieldTypeTiny,
+    fieldTypeShort,
+    fieldTypeLong,
+    fieldTypeFloat,
+    fieldTypeDouble,
+    fieldTypeNULL,
+    fieldTypeTimestamp,
+    fieldTypeLongLong,
+    fieldTypeInt24,
+    fieldTypeDate,
+    fieldTypeTime,
+    fieldTypeDateTime,
+    fieldTypeYear,
+    fieldTypeNewDate,
+    fieldTypeVarChar,
+    fieldTypeBit,
+    fieldTypeTimestamp2,
+    fieldTypeDatetime2,
+    fieldTypeTime2,
+    fieldTypeNewDecimal = 0xf6,
+    fieldTypeEnum = 0xf7,
+    fieldTypeSet = 0xf8,
+    fieldTypeTinyBLOB = 0xf9,
+    fieldTypeMediumBLOB = 0xfa,
+    fieldTypeLongBLOB = 0xfb,
+    fieldTypeBLOB = 0xfc,
+    fieldTypeVarString = 0xfd,
+    fieldTypeString = 0xfe,
+    fieldTypeGeometry = 0xff,
+};
+
 struct LogEvent{
     enum Type {
         UNKNOWN_EVENT = 0x00,
@@ -87,6 +120,7 @@ struct TableMapEvent : public LogEvent{
     std::string tablename;
     uint64_t columncount;
     std::vector<uint8_t> columntype;
+    std::vector<uint16_t> columnmeta;
 
     TableMapEvent(const LogEvent& header) :LogEvent(header){}
     virtual void unpack(const ByteArray& bytes);
@@ -104,6 +138,11 @@ struct RowsEvent: public LogEvent{
 
     RowsEvent(const LogEvent& header) :LogEvent(header) {}
     virtual void unpack(const ByteArray& bytes);
+};
+
+struct ColumnMeta{
+    std::vector<uint16_t> meta;
+    void unpack(const ByteArray& bytes, std::vector<uint8_t> columntype);
 };
 
 } // namespace slave

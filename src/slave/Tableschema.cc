@@ -2,6 +2,7 @@
 
 #include "slave/Tableschema.h"
 #include <mysql/my_global.h>
+#include <slave/logevent.h>
 
 namespace fdemo{
 namespace slave{
@@ -72,11 +73,31 @@ std::string FieldTimestamp::valueString(const ByteArray &b) {
 	t = localtime_r(&i, &tr);                         
 		                                    
 	char buf[32];                                    
-	//strftime(buf, sizeof(buf), "%F %H:%M:%S", t);  
 	strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", t); 
 	return buf ;
 }
 
+// base on mysql5.6.25 sql/log_event.cc::log_event_print_value
+std::string FieldDatetime::valueString(const ByteArray &b) {
+	char buf[MAX_DATETIME_WIDTH + 1];
+	int64 value = b.getFixed40() - DATETIMEF_INT_OFS;
+	//int64 value = b.getFixed40();
+    LOG(INFO)<<"datetime value:"<<value<<" ,fieldTypeDecimal:"<<fieldTypeTiny;
+	if (value == 0) {
+		return valueDefault();
+	}
+    if (value <0) {
+        value = -value;
+    }
+    //longlong newvalue = value >> 24;
+    longlong ymd = value >> 17;
+    longlong ym = ymd >> 5;
+    longlong hms = value % (1<<17);
+    snprintf(buf, sizeof(buf), "%04lld-%02lld-%02lld %02lld:%02lld:%02lld", ym / 13, ym % 13, ymd % (1 << 5), (hms >> 12), (hms >> 6) % (1 << 6), hms % (1 << 6));
+    return std::string(buf);
+}
+
+/*
 //FieldDatetime
 std::string FieldDatetime::valueString(const ByteArray &b) {
 	char buf[MAX_DATETIME_WIDTH + 1];
@@ -84,16 +105,17 @@ std::string FieldDatetime::valueString(const ByteArray &b) {
 	char *pos;
 	int part3;
 
-	uint64_t value = b.getFixed64();
+	//uint64_t value = b.getFixed64();
+	uint64_t value = b.getFixed40();
+    LOG(INFO)<<"datetime value:"<<value;
 	if (value == 0) {
 		return valueDefault();
 	}
        
-	/*
-	   Avoid problem with slow longlong arithmetic and sprintf
-	 */
+	//Avoid problem with slow longlong arithmetic and sprintf
 	part1=(long) (value / 1000000ULL);
-	part2=(long) (value - part1*1000000ULL);
+	//part2=(long) (value - part1*1000000ULL);
+	part2=(long) (value % 1000000ULL);
 
 	pos=(char*) buf + MAX_DATETIME_WIDTH;
 	*pos--=0;
@@ -117,7 +139,7 @@ std::string FieldDatetime::valueString(const ByteArray &b) {
 	*pos--= (char) ('0'+(char) (part3%10)); part3/=10;
 	*pos=(char) ('0'+(char) part3);
 	return std::string(buf);
-}
+}*/
 
 //FieldDate
 std::string FieldDate::valueString(const ByteArray &b) {
