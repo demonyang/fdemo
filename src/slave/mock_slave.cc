@@ -108,7 +108,7 @@ int MockSlave::processEvent(LogEvent header, ByteArray body, EventAction* eventa
         LOG(ERROR)<<"processEvent err, current position:"<<offset_<<"event position:"<<header.logpos<<"event type:"<<header.type<<",server-id"<<header.server_id;
         return -1;
     }
-    LOG(INFO)<<"processEvent err, current position:"<<offset_<<"event position:"<<header.logpos<<"event type:"<<header.type<<",server-id"<<header.server_id<<",position:"<<body.position();
+    LOG(INFO)<<"processEvent, current position:"<<offset_<<"event position:"<<header.logpos<<"event type:"<<header.type<<",server-id"<<header.server_id<<",position:"<<body.position();
     int rc;
     try{
         switch (header.type) {
@@ -287,14 +287,14 @@ void MockSlave::unpackRow(RowValue* row, RowValueType rvt, const RowsEvent& even
             LOG(ERROR)<<"unpackRow err:"<<errmsg;
             throw MalformException(errmsg);
         }
-        LOG(INFO)<<"i:"<<i<<" ,BitMap:"<<bitmap.isSet(i);
+        //LOG(INFO)<<"i:"<<i<<" ,BitMap:"<<bitmap.isSet(i);
 
         if(!bitmap.isSet(i)) {
             value = column_field->valueString(bytes);
         } else {
             value = column_field->valueDefault();
         }
-        LOG(INFO)<<"bit map value:"<<value;
+        //LOG(INFO)<<"bit map value:"<<value;
         //avoid add field to row->columns twice
         if(!filled){
             row->columns.push_back(column_field->fieldName());

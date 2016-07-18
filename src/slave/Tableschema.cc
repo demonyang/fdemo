@@ -81,7 +81,7 @@ std::string FieldTimestamp::valueString(const ByteArray &b) {
 std::string FieldDatetime::valueString(const ByteArray &b) {
 	char buf[MAX_DATETIME_WIDTH + 1];
 	int64 value = b.getFixed40_little() - DATETIMEF_INT_OFS;
-    LOG(INFO)<<"datetime value:"<<value<<" ,fieldTypeDecimal:"<<fieldTypeTiny;
+    //LOG(INFO)<<"datetime value:"<<value<<" ,fieldTypeDecimal:"<<fieldTypeTiny;
 	if (value == 0) {
 		return valueDefault();
 	}
@@ -110,7 +110,7 @@ std::string FieldDatetime::valueString(const ByteArray &b) {
             frac = b.getFixed24_little();
             break;
     }
-    LOG(INFO)<<"type_:"<<type_<<" ,frac"<<frac;
+    //LOG(INFO)<<"type_:"<<type_<<" ,frac"<<frac;
     return std::string(buf);
 }
 

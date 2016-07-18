@@ -1,5 +1,6 @@
 CXX = g++
-CXXFLAG = -Wall -Werror -std=c++11 -Wl,-rpath,./thirdparty
+CXXFLAG = -std=c++11 -Wl,-rpath,./thirdparty
+#CXXFLAG = -Wall -Werror -std=c++11 -Wl,-rpath,./thirdparty
 #CXXFLAG = -Wall -Werror -std=c++11 -Wl,-rpath,./thirdparty -ggdb #debug for gdb
 
 INCPATH = -I./thirdparty/include -Isrc/ -I/usr/include/mysql
