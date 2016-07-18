@@ -60,6 +60,7 @@ public:
     uint64_t getFixed48() const;
     uint64_t getFixed64() const;
     uint64_t getVarint() const;
+    uint64_t getVarint(int* size) const;
     float getFloat() const;
 
     const char* get(size_t len) const;

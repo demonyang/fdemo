@@ -34,6 +34,32 @@ uint64_t ByteArray::getVarint() const {
 	}
 }
 
+uint64_t ByteArray::getVarint(int* size) const {
+	const char *data = get(1);
+	uint8_t i8 = (uint8_t) *data;
+	if (i8 <= 250) {
+        *size = 1;
+		return (uint64_t)i8;
+	}
+
+	switch (i8) {
+		case 251:
+            *size = 1;
+			return 0;
+		case 252:
+            *size = 3;
+			return (uint64_t) getFixed16();
+		case 253:
+            *size = 4;
+			return (uint64_t) getFixed32();
+		case 254:
+            *size = 9;
+			return getFixed64();
+		default:
+			throw MalformException("invalid varint");
+	}
+}
+
 uint64_t ByteArray::getFixed64() const {
 	const char *d = get(8);
 	uint64_t i = uint8korr(d);

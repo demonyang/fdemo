@@ -44,8 +44,11 @@ void TableMapEvent::unpack(const ByteArray& bytes) {
     }
     ColumnMeta cm;
     ByteArray ba;
-    std::string assignStr = bytes.getLeft();
-    ba.assign((char*)assignStr.data(), assignStr.size()-(columncount+8)/7);
+    int size;
+    int len = bytes.getVarint(&size);
+    const char* ptr = bytes.get(len);
+    std::string tmpStr = std::string(ptr, len);
+    ba.assign(tmpStr.data(), tmpStr.size());
     cm.unpack(ba, columntype);
     columnmeta = cm.meta;
 }

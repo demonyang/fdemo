@@ -110,7 +110,7 @@ std::string FieldDatetime::valueString(const ByteArray &b) {
             frac = b.getFixed24_little();
             break;
     }
-    LOG(INFO)<<"frac:"<<frac;
+    LOG(INFO)<<"type_:"<<type_<<" ,frac"<<frac;
     return std::string(buf);
 }
 
