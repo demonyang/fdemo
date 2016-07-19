@@ -16,7 +16,7 @@ public:
     virtual ~BinlogSync();
     virtual void run();
 
-    virtual int onRowsEvent(const fdemo::slave::RowsEvent& event, std::vector<fdemo::slave::RowValue> rows);
+    virtual int onRowsEvent(const fdemo::slave::RowsEvent& event, std::vector<fdemo::slave::RowValue>& rows);
     //virtual int onQueryEvent();
 
 private:
@@ -28,18 +28,28 @@ private:
 class EventHandler: public fdemo::common::Runable {
 public:
     EventHandler(const fdemo::slave::RowsEvent& event ,std::vector<fdemo::slave::RowValue> rows) : rows_(rows), event_(event) {}
-    virtual ~EventHandler() {}
+    virtual ~EventHandler();
     virtual void run();
     int updateSqlHandler();
     int deleteSqlHandler();
     int insertSqlHandler();
-private:
-    std::string strJoin(std::vector<std::string>& str, const char* joinchar);
 
 private:
     std::vector<fdemo::slave::RowValue> rows_;
     const fdemo::slave::RowsEvent event_; //not const fdemo::slave::RowsEvent& event_;
 
+};
+
+//parallel by primary key
+class SingleEventHandler: public fdemo::common::Runable {
+public:
+    SingleEventHandler(const fdemo::slave::RowsEvent& event ,fdemo::slave::RowValue row) : row_(row), event_(event) {}
+    virtual ~SingleEventHandler() {}
+    virtual void run();
+
+private:
+    fdemo::slave::RowValue row_;
+    const fdemo::slave::RowsEvent event_; //not const fdemo::slave::RowsEvent& event_;
 };
 
 } //namespace binlogevent

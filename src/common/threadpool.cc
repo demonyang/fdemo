@@ -88,11 +88,11 @@ Runable* ThreadPool::take(int taskQueneId) {
     std::map<int, std::deque<Runable*>>::iterator taskQuene = task_map_.find(taskQueneId);
     while(!task) {
         pthread_mutex_lock(&mutex_);
-        //while (IsRunning_ && taskQuene->second.empty()) {
-        //    LOG(INFO)<<"pthread_cond_wait, taskQueneId:"<<taskQueneId;
-        //    //pthread_cond_wait()->unlock()->lock()
-        //    pthread_cond_wait(&condition_, &mutex_);
-        //}
+        while (IsRunning_ && taskQuene->second.empty()) {
+            LOG(INFO)<<"pthread_cond_wait, taskQueneId:"<<taskQueneId;
+            //pthread_cond_wait()->unlock()->lock()
+            pthread_cond_wait(&condition_, &mutex_);
+        }
         //由于改成多个任务队列，不能使用条件变量,要一直主动去task列表里面取
         if (!IsRunning_) {
             pthread_mutex_unlock(&mutex_);

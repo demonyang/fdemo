@@ -157,6 +157,16 @@ int MockSlave::onRotateEvent(const RotateEvent& event){
     return 0;
 }
 
+char to62Letter(int pos) {
+    if(pos<=10) {
+        return '0' + pos-1;
+    } else if (pos>10 && pos <=36){
+        return 'A' + pos-11;
+    } else {
+        return 'a' + pos-36;
+    }
+}
+
 int MockSlave::onTableMapEvent(const TableMapEvent& event) {
     LOG(INFO)<<"TableMapEvent:"<<event.tableid;
     std::map<uint64_t, TableSchema*>::iterator tmpSchema = tables_.find(event.tableid);
@@ -183,7 +193,7 @@ int MockSlave::onTableMapEvent(const TableMapEvent& event) {
     }
 
     char sql[1024];
-    int len  = snprintf(sql, sizeof(sql), "SELECT COLUMN_NAME,COLUMN_TYPE,CHARACTER_OCTET_LENGTH,ORDINAL_POSITION FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '%s' AND TABLE_NAME = '%s' ORDER BY ORDINAL_POSITION", event.dbname.c_str(), event.tablename.c_str());
+    int len  = snprintf(sql, sizeof(sql), "SELECT COLUMN_NAME,COLUMN_TYPE,CHARACTER_OCTET_LENGTH,ORDINAL_POSITION, COLUMN_KEY FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '%s' AND TABLE_NAME = '%s' ORDER BY ORDINAL_POSITION", event.dbname.c_str(), event.tablename.c_str());
 
     MYSQL_RES *res = query(sql, len);
     if (res == NULL) {
@@ -200,6 +210,8 @@ int MockSlave::onTableMapEvent(const TableMapEvent& event) {
     std::pair<uint64_t, TableSchema*> kv;
     kv.first = event.tableid;
     kv.second = new TableSchema(event.dbname, event.tablename);
+    //attention &
+    std::string prikey = kv.second->getPrikey();
     MYSQL_ROW row;
     int row_pos = 0;
     while((row = mysql_fetch_row(res))) {
@@ -213,6 +225,9 @@ int MockSlave::onTableMapEvent(const TableMapEvent& event) {
             FieldDatetime::setColumnMeta((int)event.columnmeta[row_pos]);
         }
         row_pos++;
+        if(row[4] != NULL && strcmp(row[4], "PRI") == 0) {
+            prikey.push_back(to62Letter(atoi(row[3])));
+        }
     }
     mysql_free_result(res);
     tables_.insert(kv);
@@ -266,6 +281,7 @@ int MockSlave::onRowsEvent(const RowsEvent& event, EventAction* eventaction) {
     if(eventaction->onRowsEvent(event, rows) != 0) {
         //for test, when in produce environment,should continue
         //return 0;
+        LOG(ERROR)<<"onRowsEvent failed";
         return -1;
     }
     return 0;
@@ -304,6 +320,11 @@ void MockSlave::unpackRow(RowValue* row, RowValueType rvt, const RowsEvent& even
         } else if(rvt == RowAfter) {
             row->afterValue.push_back(value);
         }
+    }
+    if(!filled) {
+        LOG(INFO)<<"add primary key";
+        //add primary key to columns last
+        row->columns.push_back(table->getPrikey());
     }
 }
 
