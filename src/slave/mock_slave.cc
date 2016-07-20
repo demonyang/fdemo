@@ -23,10 +23,12 @@ int MockSlave::Connect(const std::string& host, int port, const std::string& use
 
     if ((mysql_real_connect(slave_, host.c_str(), user.c_str(), passwd.c_str(), NULL, port, NULL, 0)) == NULL) {
         LOG(ERROR)<<"mysql_real_connect error,host:"<<host.c_str()<<"port:"<<port<<"reason:"<<mysql_error(slave_);
+        return -1;
     }
 
     if ((mysql_real_connect(schema_, host.c_str(), user.c_str(), passwd.c_str(), NULL, port, NULL, 0)) == NULL) {
         LOG(ERROR)<<"mysql_real_connect error,host:"<<host.c_str()<<"port:"<<port<<"reason:"<<mysql_error(schema_);
+        return -1;
     }
     LOG(INFO)<<"connect mysql success,host:"<<host.c_str()<<", port:"<<port;
     return 0;

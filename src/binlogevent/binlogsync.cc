@@ -41,7 +41,6 @@ size_t getPrikeyHash(fdemo::slave::RowValue* row) {
             prikeyValueStr += row->afterValue[pos];
         }
     }
-    LOG(INFO)<<"prikeyValueStr"<<prikeyValueStr;
     size_t str_hash = std::hash<std::string>{} (prikeyValueStr);
     LOG(INFO)<<"hash key:"<<str_hash;
     return str_hash;
@@ -69,10 +68,12 @@ void BinlogSync::run() {
     rc = reader.DumpBinlog(master_info_.server_id, master_info_.default_file, master_info_.default_offset);
     if(rc != 0) {
         LOG(ERROR)<<"DumpBinlog failed,file:"<<master_info_.default_file<<", offset:"<<master_info_.default_offset;
+        return;
     }
     rc = reader.run(this);
     if(rc != 0) {
         LOG(ERROR)<<"MockSlave::run failed";
+        return;
     }
     LOG(INFO)<<"BinlogSync::run end!";
 }
@@ -81,23 +82,23 @@ void BinlogSync::run() {
 //1. according to table's name to parallel
 //2. according to pri key to parallel
 //TODO
-int BinlogSync::onRowsEvent(const fdemo::slave::RowsEvent& event, std::vector<fdemo::slave::RowValue>& rows) {
-    //LOG(INFO)<<"start onRowsEvent, event type:"<<event.type;
-    int taskQueneId = event.tableid % size_;
-    pool_->AddTask2TaskMap(new EventHandler(event, rows), taskQueneId);
-    return 0;
-}
-
-//int BinlogSync::onRowsEvent(const fdemo::slave::RowsEvent& event, std::vector<fdemo::slave::RowValue> rows) {
-//    //for(std::vector<fdemo::slave::RowValue>::iterator it = rows.begin(); it != rows.end();it++) {
-//    for(size_t i = 0; i<rows.size(); i++) {
-//        size_t taskQueneId = getPrikeyHash(&rows[i]) % size_;
-//        LOG(INFO)<<"taskQueneId:"<<taskQueneId;
-//        pool_->AddTask2TaskMap(new SingleEventHandler(event, rows[i]), taskQueneId);
-//        LOG(INFO)<<"taskQueneId:"<<taskQueneId<<" ,add success";
-//    }
+//int BinlogSync::onRowsEvent(const fdemo::slave::RowsEvent& event, std::vector<fdemo::slave::RowValue>& rows) {
+//    //LOG(INFO)<<"start onRowsEvent, event type:"<<event.type;
+//    int taskQueneId = event.tableid % size_;
+//    pool_->AddTask2TaskMap(new EventHandler(event, rows), taskQueneId);
 //    return 0;
 //}
+
+int BinlogSync::onRowsEvent(const fdemo::slave::RowsEvent& event, std::vector<fdemo::slave::RowValue>& rows) {
+    //for(std::vector<fdemo::slave::RowValue>::iterator it = rows.begin(); it != rows.end();it++) {
+    for(size_t i = 0; i<rows.size(); i++) {
+        size_t taskQueneId = getPrikeyHash(&rows[i]) % size_;
+        //LOG(INFO)<<"taskQueneId:"<<taskQueneId;
+        pool_->AddTask2TaskMap(new SingleEventHandler(event, rows[i]), taskQueneId);
+        //LOG(INFO)<<"taskQueneId:"<<taskQueneId<<" ,add success";
+    }
+    return 0;
+}
 
 EventHandler::~EventHandler(){
     rows_.clear();
@@ -182,7 +183,7 @@ int EventHandler::updateSqlHandler() {
 }
 
 void SingleEventHandler::run(){
-    LOG(INFO)<<"start SingleEventHandler, type:"<<event_.type;
+    //LOG(INFO)<<"start SingleEventHandler, type:"<<event_.type;
     switch(event_.type) {
         case fdemo::slave::LogEvent::UPDATE_ROWS_EVENTv2:
         {
