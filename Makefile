@@ -21,12 +21,12 @@ BINLOG_OBJ = $(BINLOG_SRC:.cc=.o)
 SVR_OBJ = $(SVR_SRC:.cc=.o)
 ALL_OBJ = $(SVR_OBJ) $(ZK_OBJ) $(UTIL_OBJ) $(COMMON_OBJ) $(BINLOG_OBJ) $(SLAVE_OBJ) 
 
-all: demo
+all: binlog_parse
 
-demo: $(ALL_OBJ)
+binlog_parse: $(ALL_OBJ)
 	$(CXX) $(CXXFLAG) -o $@ $^  $(LDPATH) ./thirdparty/libmysqlclient_r.so.15
 
 .cc.o:
 	$(CXX) $(CXXFLAG) -c -o $@ $< $(INCPATH)
 clean:
-	rm -f demo src/*/*.o src/*.o
+	rm -f binlog_parse src/*/*.o src/*.o
