@@ -137,7 +137,8 @@ void EventHandler::run() {
 int EventHandler::deleteSqlHandler() {
     for(std::vector<fdemo::slave::RowValue>::iterator it = rows_.begin(); it != rows_.end(); it++) {
         std::vector<std::string> tmpWhere;
-        for(size_t i = 0; i < it->columns.size(); i++) {
+        //attention: it->columns.size() != event_.columncount,because of primary key
+        for(size_t i = 0; i < event_.columncount; i++) {
             std::string str = it->columns[i] + " = " + it->beforeValue[i];
             tmpWhere.push_back(str);
         }
@@ -164,7 +165,8 @@ int EventHandler::updateSqlHandler() {
     for(std::vector<fdemo::slave::RowValue>::iterator it = rows_.begin(); it != rows_.end(); it++){
         std::vector<std::string> beforeJoin;
         std::vector<std::string> afterJoin;
-        for(size_t i = 0; i < it->columns.size(); i++) {
+        //for(size_t i = 0; i < it->columns.size(); i++) {
+        for(size_t i = 0; i < event_.columncount; i++) {
             std::string str = it->columns[i] + " = " + it->beforeValue[i];
             std::string str1 = it->columns[i] + " = " + it->afterValue[i];
             beforeJoin.push_back(str);
@@ -186,7 +188,7 @@ void SingleEventHandler::run(){
         {
             std::vector<std::string> beforeJoin;
             std::vector<std::string> afterJoin;
-            for(size_t i = 0; i < row_.columns.size(); i++) {
+            for(size_t i = 0; i < event_.columncount; i++) {
                 std::string str = row_.columns[i] + " = " + row_.beforeValue[i];
                 std::string str1 = row_.columns[i] + " = " + row_.afterValue[i];
                 beforeJoin.push_back(str);
@@ -210,7 +212,7 @@ void SingleEventHandler::run(){
         case fdemo::slave::LogEvent::DELETE_ROWS_EVENTv2:
         {
             std::vector<std::string> tmpWhere;
-            for(size_t i = 0; i < row_.columns.size(); i++) {
+            for(size_t i = 0; i < event_.columncount; i++) {
                 std::string str = row_.columns[i] + " = " + row_.beforeValue[i];
                 tmpWhere.push_back(str);
             }

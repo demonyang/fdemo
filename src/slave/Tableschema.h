@@ -132,7 +132,7 @@ public:
 
     const std::string &getTablename() const { return tablename_; }
     const std::string &getDBname() const { return dbname_; }
-    std::string getPrikey() { return pk_; }
+    std::string& getPrikey() { return pk_; }
 
     bool createField(const char* name, const char* type, const char* max_octet_length);
     Field* getFieldByName(std::string& FieldName);

@@ -2,6 +2,7 @@
 
 #include "slave/mock_slave.h"
 #include "string.h"
+#include <iostream>
 
 //#define cli_send_command(mysql, cmd, arg, length) cli_advanced_command(mysql, cmd, NULL, 0, arg, length, 0, NULL)
 
@@ -211,7 +212,7 @@ int MockSlave::onTableMapEvent(const TableMapEvent& event) {
     kv.first = event.tableid;
     kv.second = new TableSchema(event.dbname, event.tablename);
     //attention &
-    std::string prikey = kv.second->getPrikey();
+    std::string& prikey = kv.second->getPrikey();
     MYSQL_ROW row;
     int row_pos = 0;
     while((row = mysql_fetch_row(res))) {
@@ -253,7 +254,7 @@ int MockSlave::onRowsEvent(const RowsEvent& event, EventAction* eventaction) {
          return 0;
     }
     std::vector<RowValue> rows;
-    TableSchema* table = it->second;
+    TableSchema * table = it->second;
     LOG(INFO)<<"row tableid:"<< event.tableid<<" ,columncount:"<<event.columncount;
     ByteArray bufByte;
     bufByte.assign((char*)event.values.data(), event.values.size());
@@ -322,7 +323,6 @@ void MockSlave::unpackRow(RowValue* row, RowValueType rvt, const RowsEvent& even
         }
     }
     if(!filled) {
-        LOG(INFO)<<"add primary key";
         //add primary key to columns last
         row->columns.push_back(table->getPrikey());
     }
