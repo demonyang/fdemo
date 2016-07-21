@@ -1,5 +1,5 @@
-fdemo-a mysql binlog parser.
-============================
+fdemo
+=====
 
 Fdemo is a mysql binlog parser written in c++, support mysql5.6 or later.
 
@@ -7,7 +7,7 @@ Fdemo is a mysql binlog parser written in c++, support mysql5.6 or later.
 
 ![Alt_text](doc/images/mysql-replication.jpg "mysql主从复制原理示意图")  
 
-mysql5.6以后引入了并行复制的概念，但是也是基于库的复制。mysql5.7加入了更细粒度的复制(前提是要对binlog进行改动的),根据commit_id来对binlog进行更细粒度的并发执行。但是在目前的生产环境中大多使用的还是5.6或者之前的版本，所以就需要对mysql原有的slave复制策略进行改进。关于并行复制，网上有很多文章进行说明，比较有代表性的就是阿里的同学[这篇文章](http://dinglin.iteye.com/blog/2272079),里面有很详细的说明，这里就不再叙述，下面主要说明下binlog并发复制策略相关的问题，在不修改binlog 的前提下的3种分发策略:
+mysql5.6以后引入了并行复制的概念，但是也是基于库的复制。mysql5.7加入了更细粒度的复制(前提是要对binlog进行改动的),根据commit_id来对binlog进行更细粒度的并发执行。但是在目前的生产环境中大多使用的还是5.6或者之前的版本，所以就需要对mysql原有的slave复制策略进行改进。关于并行复制，网上有很多文章进行说明，比较有代表性的就是阿里的同学[这篇文章](http://dinglin.iteye.com/blog/2272079),里面有很详细的说明，这里就不再叙述，下面主要说明下binlog并发复制策略相关的问题，在不修改binlog 的前提下的SQL线程3种分发策略:
 - 基于库的分发策略
 - 基于表的分发策略
 - 基于行的分发策略  
