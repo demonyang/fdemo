@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <set>
+#include "utils/utils_config.h"
 
 namespace fdemo {
 namespace slave {
@@ -17,8 +18,17 @@ struct BinlogInfo {
     std::string user;
     std::string passwd;
     std::string default_file;
-    uint32_t default_offset;
-    uint32_t server_id;
+    uint64_t default_offset;
+    uint64_t server_id;
+};
+
+class MysqlMeta{
+public:
+    void init(fdemo::utils::XmlConfig& xml);
+public:
+    BinlogInfo srcMysqlInfo_;
+    BinlogInfo dstMysqlInfo_;
+    
 };
 
 } // namespace slave

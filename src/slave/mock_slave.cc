@@ -287,6 +287,7 @@ int MockSlave::onRowsEvent(const RowsEvent& event, EventAction* eventaction) {
         LOG(ERROR)<<"onRowsEvent failed";
         return -1;
     }
+    offset_ = event.logpos;
     return 0;
 }
 

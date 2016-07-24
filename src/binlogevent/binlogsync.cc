@@ -46,8 +46,10 @@ size_t getPrikeyHash(fdemo::slave::RowValue* row) {
     return str_hash;
 }
 
-BinlogSync::BinlogSync(fdemo::slave::BinlogInfo& info, int poolsize) {
-    master_info_ = info;
+BinlogSync::BinlogSync(fdemo::utils::XmlConfig xml, int poolsize) {
+    meta_.init(xml);
+    //tmp,change later
+    master_info_ = meta_.srcMysqlInfo_;
     pool_ = new fdemo::common::ThreadPool(poolsize);
     size_ = poolsize;
 }

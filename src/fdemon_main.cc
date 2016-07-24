@@ -4,6 +4,7 @@
 #include "gflags/gflags.h"
 #include "utils/utils_cmd.h"
 #include "utils/utils_alg.h"
+#include "utils/utils_config.h"
 #include "zk/zk_adpter.h"
 #include "common/thread.h"
 #include "common/threadpool.h"
@@ -13,6 +14,7 @@
 DEFINE_string(fdemo_log_prefix, "fdemo", "program's log name");
 DEFINE_string(zkServer, "127.0.0.1:2181", "zookeeper address");
 DEFINE_string(SvrAddr, "127.0.0.1", "Svr's address");
+DEFINE_string(CnfPath, "./config.xml", "config file's path");
 DEFINE_int32(SvrPort, 1234, "Svr's port");
 
 int main(int argc, char** argv) {
@@ -43,6 +45,8 @@ int main(int argc, char** argv) {
     std::cout<< "zk_address:" << FLAGS_zkServer<<std::endl;
     std::cout<< "svr_address" << FLAGS_SvrAddr<<std::endl;
     std::cout<< "svr_port" << FLAGS_SvrPort<<std::endl;
+    std::cout<< "CnfPath: " << FLAGS_CnfPath<<std::endl;
+
 
     /*  zookeeper's test
     LOG(INFO)<<"star test of zookeeper";
@@ -105,10 +109,10 @@ int main(int argc, char** argv) {
     }
     */
 
-    fdemo::slave::BinlogInfo bi1 = {"svr1", FLAGS_SvrAddr, 6301, "root", "test,.6301", "mysql-bin.000001", 123, 23};
-    fdemo::binlogevent::BinlogSync sync(bi1, 10);
-    //fdemo::common::Thread::schedule_detach(&sync);
-    //run
+    
+    fdemo::utils::XmlConfig cnf;
+    cnf.loadFile(FLAGS_CnfPath.c_str());
+    fdemo::binlogevent::BinlogSync sync(cnf, 10);
     sync.run();
 
     google::ShutdownGoogleLogging();

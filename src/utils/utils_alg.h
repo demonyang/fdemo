@@ -17,6 +17,7 @@ public:
     void BubbleSort(T sort_array[], int arr_len) {
         //sort
         for (int i=0;i<arr_len;i++){
+            //must attention arr_len-i-1(because of swap)
             for (int j=0;j<arr_len-i-1;j++) {
                 if (sort_array[j] > sort_array[j+1]) {
                     //swap

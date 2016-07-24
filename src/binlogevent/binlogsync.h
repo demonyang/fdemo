@@ -12,7 +12,7 @@ namespace binlogevent{
 
 class BinlogSync: public fdemo::slave::EventAction {
 public:
-    BinlogSync(fdemo::slave::BinlogInfo& info, int poolsize);
+    BinlogSync(fdemo::utils::XmlConfig xml, int poolsize);
     virtual ~BinlogSync();
     virtual void run();
 
@@ -21,6 +21,7 @@ public:
 
 private:
     fdemo::slave::BinlogInfo master_info_;
+    fdemo::slave::MysqlMeta meta_;
     fdemo::common::ThreadPool* pool_;
     int size_;
 };
