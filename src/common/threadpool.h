@@ -3,6 +3,7 @@
 
 #include<deque>
 #include<map>
+#include<vector>
 #include<assert.h>
 #include "common/mutex.h"
 #include "common/thread.h"
@@ -38,7 +39,8 @@ private:
     std::map<int, std::deque<Runable*>> task_map_;
     Mutex state_lock_;
     int Maxnum_;
-    pthread_cond_t condition_;
+    //pthread_cond_t condition_;
+    std::vector<pthread_cond_t> conditions_;
     pthread_mutex_t mutex_;
     volatile bool IsRunning_;
 };

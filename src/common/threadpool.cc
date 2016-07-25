@@ -27,7 +27,12 @@ ThreadPool::~ThreadPool() {
 
 void ThreadPool::createThreads() {
     pthread_mutex_init(&mutex_, NULL);
-    pthread_cond_init(&condition_, NULL);
+    for(int i = 0; i < Maxnum_; i++){
+        pthread_cond_t condition;
+        pthread_cond_init(&condition, NULL);
+        conditions_.push_back(condition);
+    }
+    //pthread_cond_init(&condition_, NULL);
     threads_ = (pthread_t*)malloc(sizeof(pthread_t) * Maxnum_);
     for(int i = 0;i<Maxnum_;i++) {
         TakeTask* threadRrg = new TakeTask{this, i};
@@ -40,7 +45,7 @@ size_t ThreadPool::AddTask(Runable* func) {
     MutexLock mutex(&state_lock_);
     task_list_.push_back(func);
     int size = task_list_.size();
-    pthread_cond_signal(&condition_);
+    //pthread_cond_signal(&condition_);
     return size;
 }
 
@@ -52,7 +57,7 @@ size_t ThreadPool::AddTask2TaskMap(Runable* func, int taskMapId){
     }
     it->second.push_back(func);
     int size = it->second.size();
-    pthread_cond_signal(&condition_);
+    pthread_cond_signal(&conditions_[taskMapId]);
     return size;
 }
 
@@ -63,14 +68,20 @@ void ThreadPool::stop(){
     }
 
     IsRunning_ = false;
-    pthread_cond_broadcast(&condition_);
+    //pthread_cond_broadcast(&condition_);
+    for(size_t i = 0; i < conditions_.size(); i++){
+        pthread_cond_signal(&conditions_[i]);
+    }
     for(int i = 0; i<Maxnum_;i++) {
         pthread_join(threads_[i], NULL);
     }
     free(threads_);
     threads_ = NULL;
     pthread_mutex_destroy(&mutex_);
-    pthread_cond_destroy(&condition_);
+    for(size_t i = 0; i < conditions_.size(); i++){
+        pthread_cond_destroy(&conditions_[i]);
+    }
+    //pthread_cond_destroy(&condition_);
 
 }
 
@@ -88,11 +99,11 @@ Runable* ThreadPool::take(int taskQueneId) {
     std::map<int, std::deque<Runable*>>::iterator taskQuene = task_map_.find(taskQueneId);
     while(!task) {
         pthread_mutex_lock(&mutex_);
-        //while (IsRunning_ && taskQuene->second.empty()) {
-        //    LOG(INFO)<<"pthread_cond_wait, taskQueneId:"<<taskQueneId;
-        //    //pthread_cond_wait()->unlock()->lock()
-        //    pthread_cond_wait(&condition_, &mutex_);
-        //}
+        while (IsRunning_ && taskQuene->second.empty()) {
+            LOG(INFO)<<"pthread_cond_wait, taskQueneId:"<<taskQueneId;
+            //pthread_cond_wait()->unlock()->lock()
+            pthread_cond_wait(&conditions_[taskQueneId], &mutex_);
+        }
         //由于改成多个任务队列，不能使用条件变量,要一直主动去task列表里面取
         if (!IsRunning_) {
             pthread_mutex_unlock(&mutex_);
