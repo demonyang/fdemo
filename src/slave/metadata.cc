@@ -15,6 +15,8 @@ void MysqlMeta::init(fdemo::utils::XmlConfig& xml) {
     srcMysqlInfo_.default_file = xml.getNode("src-mysql/file");
     srcMysqlInfo_.default_offset = xml.getNumber("src-mysql/offset");
     srcMysqlInfo_.server_id = xml.getNumber("src-mysql/serverid");
+
+    poolSize_ = xml.getNumber("pool");
 }
 
 } // namespace slave

@@ -28,6 +28,7 @@ public:
 public:
     BinlogInfo srcMysqlInfo_;
     BinlogInfo dstMysqlInfo_;
+    int poolSize_;
     
 };
 

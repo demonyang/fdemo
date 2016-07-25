@@ -9,7 +9,7 @@ namespace fdemo {
 namespace utils{
 
 void SetProLog(const std::string & program_name) {
-    std::string log_name = "fdemo";
+    std::string log_name = "binlog_parse";
     if (!program_name.empty()) {
         log_name = program_name;
     }

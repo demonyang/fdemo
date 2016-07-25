@@ -46,12 +46,11 @@ size_t getPrikeyHash(fdemo::slave::RowValue* row) {
     return str_hash;
 }
 
-BinlogSync::BinlogSync(fdemo::utils::XmlConfig xml, int poolsize) {
+BinlogSync::BinlogSync(fdemo::utils::XmlConfig xml) {
     meta_.init(xml);
     //tmp,change later
-    master_info_ = meta_.srcMysqlInfo_;
-    pool_ = new fdemo::common::ThreadPool(poolsize);
-    size_ = poolsize;
+    meta_.srcMysqlInfo_ = meta_.srcMysqlInfo_;
+    pool_ = new fdemo::common::ThreadPool(meta_.poolSize_);
 }
 
 BinlogSync::~BinlogSync(){
@@ -61,15 +60,15 @@ BinlogSync::~BinlogSync(){
 void BinlogSync::run() {
     int rc = 0;
     fdemo::slave::MockSlave reader;
-    rc = reader.Connect(master_info_.host, master_info_.port, master_info_.user, master_info_.passwd);
+    rc = reader.Connect(meta_.srcMysqlInfo_.host, meta_.srcMysqlInfo_.port, meta_.srcMysqlInfo_.user, meta_.srcMysqlInfo_.passwd);
     if(rc != 0) {
-        LOG(ERROR)<<"Connect host:"<<master_info_.host<<", port:"<<master_info_.port<<"failed";    
+        LOG(ERROR)<<"Connect host:"<<meta_.srcMysqlInfo_.host<<", port:"<<meta_.srcMysqlInfo_.port<<"failed";    
         return;
     }
 
-    rc = reader.DumpBinlog(master_info_.server_id, master_info_.default_file, master_info_.default_offset);
+    rc = reader.DumpBinlog(meta_.srcMysqlInfo_.server_id, meta_.srcMysqlInfo_.default_file, meta_.srcMysqlInfo_.default_offset);
     if(rc != 0) {
-        LOG(ERROR)<<"DumpBinlog failed,file:"<<master_info_.default_file<<", offset:"<<master_info_.default_offset;
+        LOG(ERROR)<<"DumpBinlog failed,file:"<<meta_.srcMysqlInfo_.default_file<<", offset:"<<meta_.srcMysqlInfo_.default_offset;
         return;
     }
     rc = reader.run(this);
@@ -86,7 +85,7 @@ void BinlogSync::run() {
 //TODO
 //int BinlogSync::onRowsEvent(const fdemo::slave::RowsEvent& event, std::vector<fdemo::slave::RowValue>& rows) {
 //    //LOG(INFO)<<"start onRowsEvent, event type:"<<event.type;
-//    int taskQueneId = event.tableid % size_;
+//    int taskQueneId = event.tableid % meta_.poolSize_;
 //    pool_->AddTask2TaskMap(new EventHandler(event, rows), taskQueneId);
 //    return 0;
 //}
@@ -94,7 +93,7 @@ void BinlogSync::run() {
 int BinlogSync::onRowsEvent(const fdemo::slave::RowsEvent& event, std::vector<fdemo::slave::RowValue>& rows) {
     //for(std::vector<fdemo::slave::RowValue>::iterator it = rows.begin(); it != rows.end();it++) {
     for(size_t i = 0; i<rows.size(); i++) {
-        size_t taskQueneId = getPrikeyHash(&rows[i]) % size_;
+        size_t taskQueneId = getPrikeyHash(&rows[i]) % meta_.poolSize_;
         //LOG(INFO)<<"taskQueneId:"<<taskQueneId;
         pool_->AddTask2TaskMap(new SingleEventHandler(event, rows[i]), taskQueneId);
         //LOG(INFO)<<"taskQueneId:"<<taskQueneId<<" ,add success";
