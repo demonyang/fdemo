@@ -8,9 +8,9 @@
 
 ### 代码目录结构:
 
-- *./binlogevent:* 处理解析之后的binlog，包括按行、按表并发
+- *./mockslave:* 处理解析之后的binlog，包括按行、按表并发
 - *./common:* 线程池相关
-- *./slave:* binlog解析相关
+- *./binlogparse:* binlog解析相关
 - *./utils:* 暂时未用
 - *./zk:* 暂时未用
 

@@ -1,5 +1,5 @@
 
-#include "binlogevent/binlogsync.h"
+#include "mockslave/binlogsync.h"
 
 namespace fdemo{
 namespace binlogevent{

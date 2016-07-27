@@ -1,6 +1,6 @@
 //Author: demon1991@gmail.com
 
-#include "slave/logevent.h"
+#include "binlogparse/logevent.h"
 
 namespace fdemo{
 namespace slave{

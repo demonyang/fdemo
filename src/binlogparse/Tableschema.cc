@@ -1,8 +1,8 @@
 //Author: demon1991yl@gmail.com
 
-#include "slave/Tableschema.h"
+#include "binlogparse/Tableschema.h"
 #include <mysql/my_global.h>
-#include <slave/logevent.h>
+#include <binlogparse/logevent.h>
 
 namespace fdemo{
 namespace slave{

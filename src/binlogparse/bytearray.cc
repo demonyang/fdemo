@@ -1,5 +1,5 @@
 
-#include "slave/bytearray.h"
+#include "binlogparse/bytearray.h"
 #include <mysql/my_global.h>
 
 namespace fdemo{

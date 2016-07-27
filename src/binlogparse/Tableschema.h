@@ -5,7 +5,7 @@
 
 #include <vector>
 #include <string>
-#include "slave/bytearray.h"
+#include "binlogparse/bytearray.h"
 #include "glog/logging.h"
 
 namespace fdemo{

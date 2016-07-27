@@ -8,8 +8,8 @@ LDPATH = -L./thirdparty/lib -lgflags -lpthread -lglog -lzookeeper_mt -ltinyxml
 
 UTIL_SRC = $(wildcard ./src/utils/*.cc)
 COMMON_SRC = $(wildcard ./src/common/*.cc)
-SLAVE_SRC = $(wildcard ./src/slave/*.cc)
-BINLOG_SRC = $(wildcard ./src/binlogevent/*.cc)
+SLAVE_SRC = $(wildcard ./src/binlogparse/*.cc)
+BINLOG_SRC = $(wildcard ./src/mockslave/*.cc)
 SVR_SRC = ./src/fdemon_main.cc
 
 UTIL_OBJ = $(UTIL_SRC:.cc=.o)

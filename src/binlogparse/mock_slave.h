@@ -10,9 +10,9 @@
 #include <mysql/m_ctype.h>
 #include <mysql/sql_common.h>
 #include <mysql/mysql_com.h>
-#include "slave/logevent.h"
+#include "binlogparse/logevent.h"
 #include <exception>
-#include "slave/Tableschema.h"
+#include "binlogparse/Tableschema.h"
 #include <map>
 
 struct st_mysql;

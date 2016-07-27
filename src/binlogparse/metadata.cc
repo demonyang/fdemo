@@ -1,6 +1,6 @@
 //Author: demon1991yl@gmail.com
 
-#include "slave/metadata.h"
+#include "binlogparse/metadata.h"
 
 
 namespace fdemo{

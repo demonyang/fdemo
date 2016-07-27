@@ -5,7 +5,7 @@
 
 #include <cstdint>
 #include <vector>
-#include "slave/bytearray.h"
+#include "binlogparse/bytearray.h"
 
 namespace fdemo{
 namespace slave{

@@ -1,6 +1,6 @@
 //Author: demon1991yl@gmail.com
 
-#include "slave/mock_slave.h"
+#include "binlogparse/mock_slave.h"
 #include "string.h"
 #include <iostream>
 

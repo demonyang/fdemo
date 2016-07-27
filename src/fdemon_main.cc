@@ -4,8 +4,8 @@
 #include "utils/utils_cmd.h"
 #include "utils/utils_config.h"
 #include "common/threadpool.h"
-#include "binlogevent/binlogsync.h"
-#include "slave/metadata.h"
+#include "mockslave/binlogsync.h"
+#include "binlogparse/metadata.h"
 
 DEFINE_string(fdemo_log_prefix, "binlog_parse", "program's log name");
 DEFINE_string(CnfPath, "./config.xml", "config file's path");

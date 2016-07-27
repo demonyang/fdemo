@@ -1,8 +1,8 @@
 #ifndef FDEMO_BINLOGEVENT_BINLOGSYNC_H_
 #define FDEMO_BINLOGEVENT_BINLOGSYNC_H_
 
-#include "slave/mock_slave.h"
-#include "slave/metadata.h"
+#include "binlogparse/mock_slave.h"
+#include "binlogparse/metadata.h"
 #include "common/threadpool.h"
 #include "common/thread.h"
 #include <vector>
