@@ -198,7 +198,7 @@ void SingleEventHandler::run(){
             }
             const char* joinbefore = " and ";
             const char* joinafter = " , ";
-            char sql[1024];
+            char sql[256];
             snprintf(sql, sizeof(sql), "update %s.%s set %s where %s",row_.db.c_str(), row_.table.c_str(), strJoin(afterJoin, joinafter).c_str(), strJoin(beforeJoin, joinbefore).c_str());
             LOG(INFO)<<"update sql is:"<< sql;
             break;
@@ -206,7 +206,7 @@ void SingleEventHandler::run(){
         case fdemo::slave::LogEvent::WRITE_ROWS_EVENTv2:
         {
             const char* joinchar = " , ";
-            char sql[1024];
+            char sql[256];
             snprintf(sql, sizeof(sql), "insert into %s.%s (%s) values (%s)", row_.db.c_str(), row_.table.c_str(), strJoin(row_.columns, joinchar).c_str(), strJoin(row_.afterValue, joinchar).c_str());
             LOG(INFO)<<"insert sql is:"<< sql;
             break;
@@ -220,7 +220,7 @@ void SingleEventHandler::run(){
             }
             const char* joinchar = " and ";
             std::string whereCluse = strJoin(tmpWhere, joinchar);
-            char sql[1024];
+            char sql[256];
             snprintf(sql, sizeof(sql), "delete from %s.%s where %s", row_.db.c_str(), row_.table.c_str(), whereCluse.c_str());
             LOG(INFO)<<"delete sql is:"<< sql;
             break;
