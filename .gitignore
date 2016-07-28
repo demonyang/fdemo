@@ -1,0 +1,7 @@
+/thirdparty
+/software
+config.xml
+src/*.o
+src/*/*.o
+src/*.swp
+src/*/*.swp
