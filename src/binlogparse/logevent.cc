@@ -3,7 +3,7 @@
 #include "binlogparse/logevent.h"
 
 namespace fdemo{
-namespace slave{
+namespace binlogparse{
 
 void LogEvent::unpack(const ByteArray& bytes) {
     timestamp = bytes.getFixed32();
@@ -112,5 +112,5 @@ void RowsEvent::unpack(const ByteArray& bytes) {
     values = bytes.getLeft();
 }
 
-} // namespace slave
+} // namespace binlogparse
 } //namespace fdemo

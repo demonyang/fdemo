@@ -4,7 +4,7 @@
 
 
 namespace fdemo{
-namespace slave{
+namespace binlogparse{
 
 void MysqlMeta::init(fdemo::utils::XmlConfig& xml) {
     srcMysqlInfo_.name = xml.getNode("src-mysql/name");
@@ -15,9 +15,13 @@ void MysqlMeta::init(fdemo::utils::XmlConfig& xml) {
     srcMysqlInfo_.default_file = xml.getNode("src-mysql/file");
     srcMysqlInfo_.default_offset = xml.getNumber("src-mysql/offset");
     srcMysqlInfo_.server_id = xml.getNumber("src-mysql/serverid");
+    dstMysqlInfo_.host = xml.getNode("dst-mysql/ip");
+    dstMysqlInfo_.port = xml.getNumber("dst-mysql/port");
+    dstMysqlInfo_.user = xml.getNode("dst-mysql/user");
+    dstMysqlInfo_.passwd = xml.getNode("dst-mysql/pass");
 
     poolSize_ = xml.getNumber("pool");
 }
 
-} // namespace slave
+} // namespace binlogparse
 } // namespace fdemo

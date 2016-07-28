@@ -1,7 +1,7 @@
 //Author: demon1991yl@gmail.com
 
-#ifndef FDEMO_SLAVE_TABLESCHEMA_H
-#define FDEMO_SLAVE_TABLESCHEMA_H
+#ifndef FDEMO_BINLOGPARSE_TABLESCHEMA_H
+#define FDEMO_BINLOGPARSE_TABLESCHEMA_H
 
 #include <vector>
 #include <string>
@@ -9,7 +9,7 @@
 #include "glog/logging.h"
 
 namespace fdemo{
-namespace slave{
+namespace binlogparse{
 
 class Field {
 
@@ -140,6 +140,6 @@ public:
     size_t getFieldCount() const { return columns_.size();}
 };
 
-} //namespace slave
+} //namespace binlogparse
 } //namespace fdemo
 #endif

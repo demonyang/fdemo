@@ -1,7 +1,7 @@
 //Author: demon1991yl@gmail.com
 
-#ifndef FDEMO_SLAVE_MOCK_SLAVE_H_
-#define FDEMO_SLAVE_MOCK_SLAVE_H_
+#ifndef FDEMO_BINLOGPARSE_MOCK_SLAVE_H_
+#define FDEMO_BINLOGPARSE_MOCK_SLAVE_H_
 
 #include "metadata.h"
 #include "glog/logging.h"
@@ -15,11 +15,11 @@
 #include "binlogparse/Tableschema.h"
 #include <map>
 
-struct st_mysql;
-struct st_mysql_res;
+//struct st_mysql;
+//struct st_mysql_res;
 
 namespace fdemo{
-namespace slave{
+namespace binlogparse{
 
 enum RowValueType{
     RowBefore,
@@ -78,7 +78,7 @@ private:
     //struct BinlogInfo master_info_;
 };
 
-} // namespace slave
+} // namespace binlogparse
 } // namespace fdemo
 
 

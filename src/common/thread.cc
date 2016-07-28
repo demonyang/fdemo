@@ -15,7 +15,7 @@ void MockTask::run() {
     std::cout<<"task arg:"<< arg_<<std::endl;
 }
 
-void Thread::schedule(Runable* func) {
+void Thread::schedule(RunableFunc* func) {
     Thread * thread =  new Thread(func);
     bool ret = thread->join();
     if (!ret) {
@@ -24,7 +24,7 @@ void Thread::schedule(Runable* func) {
     delete thread;
     }
 
-void Thread::schedule_detach(Runable* func) {
+void Thread::schedule_detach(RunableFunc* func) {
     Thread* thread = new Thread(func);
     thread->start();
     thread->detach();

@@ -3,7 +3,7 @@
 #include <mysql/my_global.h>
 
 namespace fdemo{
-namespace slave{
+namespace binlogparse{
 
 float ByteArray::getFloat() const {
 	float nr;
@@ -134,5 +134,5 @@ std::string ByteArray::getLeft() const {
 	return std::string(ptr, len);
 }
 
-} //namespace slave
+} //namespace binlogparse
 } //namespace fdemo

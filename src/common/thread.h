@@ -7,6 +7,12 @@
 namespace fdemo{
 namespace common{
 
+class RunableFunc {
+public:
+    virtual ~RunableFunc() {}
+    virtual void run() = 0;
+};
+
 class Runable {
 public:
     virtual ~Runable() {}
@@ -14,7 +20,7 @@ public:
 };
 
 //for print test func
-class FuncWrap: public Runable {
+class FuncWrap: public RunableFunc {
 public:
     FuncWrap(void (*func)()): func_(func) {};
     virtual ~FuncWrap() {};
@@ -24,7 +30,7 @@ private:
 
 };
 
-class MockTask: public Runable {
+class MockTask: public RunableFunc {
 public:
     MockTask(const std::string& arg):arg_(arg) {}
     virtual void run();
@@ -35,14 +41,14 @@ private:
 class Thread {
 
     static void * proc(void *arg) {
-        Runable *r = static_cast<Runable*>(arg); //cast(强制转换) arg to Runable*
+        RunableFunc *r = static_cast<RunableFunc*>(arg); //cast(强制转换) arg to RunableFunc*
         r->run();
         delete r;
         return NULL;
     }
 
 public:
-    Thread(Runable *r): runable_(r) {};
+    Thread(RunableFunc *r): runable_(r) {};
     ~Thread(){};
 
     void start() {
@@ -55,16 +61,16 @@ public:
 
     bool join();
 
-    static void schedule(Runable* func);
+    static void schedule(RunableFunc* func);
 
-    static void schedule_detach(Runable* func);
+    static void schedule_detach(RunableFunc* func);
 
 private:
     pthread_t tid_;
-    Runable *runable_;
+    RunableFunc *runable_;
 };
 
-class ClientHandle: public Runable {
+class ClientHandle: public RunableFunc {
 public:
     ClientHandle(int client): socket_client_(client), connected_(true) {
         //SetTimeout(20 * 1000); // 20 seconds

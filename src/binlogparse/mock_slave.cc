@@ -7,7 +7,7 @@
 //#define cli_send_command(mysql, cmd, arg, length) cli_advanced_command(mysql, cmd, NULL, 0, arg, length, 0, NULL)
 
 namespace fdemo{
-namespace slave{
+namespace binlogparse{
 
 int MockSlave::Connect(const std::string& host, int port, const std::string& user, const std::string& passwd){
     //two connections
@@ -377,5 +377,5 @@ void MockSlave::Close() {
     mysql_thread_end();
 }
 
-} // namespace slave
+} // namespace binlogparse
 } //namespace fdemo

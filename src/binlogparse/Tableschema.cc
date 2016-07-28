@@ -5,7 +5,7 @@
 #include <binlogparse/logevent.h>
 
 namespace fdemo{
-namespace slave{
+namespace binlogparse{
 
 //FieldInteger
 std::string FieldInteger::valueString(const ByteArray &b) {
@@ -339,5 +339,5 @@ Field* TableSchema::getFieldByIndex(int index) {
     return columns_[index];
 }
 
-} //namespace slave
+} //namespace binlogparse
 } //namespace fdemo

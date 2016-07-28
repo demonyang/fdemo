@@ -1,7 +1,7 @@
 //Author: demon1991yl@gmail.com
 
-#ifndef FDEMO_SLAVE_METADATA_H_
-#define FDEMO_SLAVE_METADATA_H_
+#ifndef FDEMO_BINLOGPARSE_METADATA_H_
+#define FDEMO_BINLOGPARSE_METADATA_H_
 
 #include <vector>
 #include <string>
@@ -9,7 +9,7 @@
 #include "utils/utils_config.h"
 
 namespace fdemo {
-namespace slave {
+namespace binlogparse {
 
 struct BinlogInfo {
     std::string name;
@@ -22,17 +22,24 @@ struct BinlogInfo {
     uint64_t server_id;
 };
 
+struct SlaveInfo{
+    std::string host;
+    int port;
+    std::string user;
+    std::string passwd;
+};
+
 class MysqlMeta{
 public:
     void init(fdemo::utils::XmlConfig& xml);
 public:
     BinlogInfo srcMysqlInfo_;
-    BinlogInfo dstMysqlInfo_;
+    SlaveInfo dstMysqlInfo_;
     int poolSize_;
     
 };
 
-} // namespace slave
+} // namespace binlogparse
 } //namespace fdemo
 
 #endif

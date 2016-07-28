@@ -1,7 +1,7 @@
 //Author: demon1991yl@gmail.com
 
-#ifndef FDEMO_SLAVE_BYTEARRAY_H_
-#define FDEMO_SLAVE_BYTEARRAY_H_
+#ifndef FDEMO_BINLOGPARSE_BYTEARRAY_H_
+#define FDEMO_BINLOGPARSE_BYTEARRAY_H_
 
 #define mi_uint5korr(A) ((ulonglong)(((uint32) (((uchar*) (A))[4])) +\
                                     (((uint32) (((uchar*) (A))[3])) << 8) +\
@@ -28,7 +28,7 @@
 #include <stdexcept>
 
 namespace fdemo{
-namespace slave{
+namespace binlogparse{
 
 class MalformException: public std::length_error {
 public:
@@ -74,7 +74,7 @@ private:
 
 };
 
-} //namespace slave
+} //namespace binlogparse
 } //namespace fdemo
 
 #endif

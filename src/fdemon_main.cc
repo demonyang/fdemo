@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
     
     fdemo::utils::XmlConfig cnf;
     cnf.loadFile(FLAGS_CnfPath.c_str());
-    fdemo::binlogevent::BinlogSync sync(cnf);
+    fdemo::mockslave::BinlogSync sync(cnf);
     sync.run();
 
     google::ShutdownGoogleLogging();

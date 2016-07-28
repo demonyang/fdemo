@@ -15,7 +15,7 @@ namespace common{
 class ThreadPool {
 
 public:
-    ThreadPool(int thread_num = 10);
+    ThreadPool(int thread_num);
     ~ThreadPool();
 
     size_t AddTask(Runable* func);

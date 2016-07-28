@@ -1,14 +1,14 @@
 //Author: demon1991yl@gmail.com
 
-#ifndef FDEMO_SLAVE_LOGEVENT_H
-#define FDEMO_SLAVE_LOGEVENT_H
+#ifndef FDEMO_BINLOGPARSE_LOGEVENT_H
+#define FDEMO_BINLOGPARSE_LOGEVENT_H
 
 #include <cstdint>
 #include <vector>
 #include "binlogparse/bytearray.h"
 
 namespace fdemo{
-namespace slave{
+namespace binlogparse{
 
 enum FieldType {
     fieldTypeDecimal,
@@ -145,6 +145,6 @@ struct ColumnMeta{
     void unpack(const ByteArray& bytes, std::vector<uint8_t> columntype);
 };
 
-} // namespace slave
+} // namespace binlogparse
 } // namespace fdemo
 #endif
