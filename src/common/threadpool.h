@@ -8,6 +8,8 @@
 #include "common/mutex.h"
 #include "common/thread.h"
 #include "glog/logging.h"
+#include "mockslave/slave.h"
+#include "binlogparse/metadata.h"
 
 namespace fdemo{
 namespace common{
@@ -15,7 +17,7 @@ namespace common{
 class ThreadPool {
 
 public:
-    ThreadPool(int thread_num);
+    ThreadPool(int thread_num, const fdemo::binlogparse::SlaveInfo& slaveinfo);
     ~ThreadPool();
 
     size_t AddTask(Runable* func);
@@ -23,6 +25,7 @@ public:
     void stop();
     size_t size();
     Runable* take(int taskQueneId);
+    fdemo::mockslave::SlaveHandler* getMysqlConnect(int taskMapId);
 
 private:
     ThreadPool(const ThreadPool&);
@@ -30,6 +33,7 @@ private:
 
     void createThreads();
     static void *proc(void *arg);
+    void createMysqlConnects(const fdemo::binlogparse::SlaveInfo& slaveinfo);
 
 
 private:
@@ -43,6 +47,9 @@ private:
     std::vector<pthread_cond_t> conditions_;
     pthread_mutex_t mutex_;
     volatile bool IsRunning_;
+
+    //fixed nums of mysql connector
+    std::vector<fdemo::mockslave::SlaveHandler*> mysqlConnect_;
 };
 
 struct TakeTask {

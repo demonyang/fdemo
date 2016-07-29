@@ -54,15 +54,11 @@ BinlogSync::BinlogSync(fdemo::utils::XmlConfig xml) {
     meta_.init(xml);
     //tmp,change later
     //meta_.srcMysqlInfo_ = meta_.srcMysqlInfo_;
-    pool_ = new fdemo::common::ThreadPool(meta_.poolSize_);
-    if((sqlhandler_ = new SlaveHandler(meta_.dstMysqlInfo_)) == NULL){
-        LOG(ERROR)<<"new SlaveHandler error";
-    }
+    pool_ = new fdemo::common::ThreadPool(meta_.poolSize_, meta_.dstMysqlInfo_);
 }
 
 BinlogSync::~BinlogSync(){
     pool_->stop();
-    delete sqlhandler_;
 }
 
 void BinlogSync::run() {
@@ -103,7 +99,7 @@ int BinlogSync::onRowsEvent(const fdemo::binlogparse::RowsEvent& event, std::vec
     for(size_t i = 0; i<rows.size(); i++) {
         size_t taskQueneId = getPrikeyHash(&rows[i]) % meta_.poolSize_;
         //LOG(INFO)<<"taskQueneId:"<<taskQueneId;
-        pool_->AddTask2TaskMap(new SingleEventHandler(event, rows[i], sqlhandler_), taskQueneId);
+        pool_->AddTask2TaskMap(new SingleEventHandler(event, rows[i], pool_->getMysqlConnect(taskQueneId)), taskQueneId);
         //LOG(INFO)<<"taskQueneId:"<<taskQueneId<<" ,add success";
     }
     return 0;
@@ -206,9 +202,12 @@ void SingleEventHandler::run(){
             }
             const char* joinbefore = " and ";
             const char* joinafter = " , ";
-            char sql[256];
-            snprintf(sql, sizeof(sql), "update %s.%s set %s where %s",row_.db.c_str(), row_.table.c_str(), strJoin(afterJoin, joinafter, false).c_str(), strJoin(beforeJoin, joinbefore, false).c_str());
+            char sql[512];
+            int len = snprintf(sql, sizeof(sql), "update %s.%s set %s where %s",row_.db.c_str(), row_.table.c_str(), strJoin(afterJoin, joinafter, false).c_str(), strJoin(beforeJoin, joinbefore, false).c_str());
             LOG(INFO)<<"update sql is:"<< sql;
+            if(!(sh_->ExecuteSql(sql, len))){
+                LOG(ERROR)<<"execute sql: "<<sql<<" , error";
+            }
             break;
         }
         case fdemo::binlogparse::LogEvent::WRITE_ROWS_EVENTv2:
@@ -234,8 +233,11 @@ void SingleEventHandler::run(){
             const char* joinchar = " and ";
             std::string whereCluse = strJoin(tmpWhere, joinchar, false);
             char sql[256];
-            snprintf(sql, sizeof(sql), "delete from %s.%s where %s", row_.db.c_str(), row_.table.c_str(), whereCluse.c_str());
+            int len = snprintf(sql, sizeof(sql), "delete from %s.%s where %s", row_.db.c_str(), row_.table.c_str(), whereCluse.c_str());
             LOG(INFO)<<"delete sql is:"<< sql;
+            if(!(sh_->ExecuteSql(sql, len))){
+                LOG(ERROR)<<"execute sql: "<<sql<<" , error";
+            }
             break;
         }
         default:

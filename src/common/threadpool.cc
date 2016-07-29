@@ -5,7 +5,7 @@
 namespace fdemo{
 namespace common{
 
-ThreadPool::ThreadPool(int thread_num){
+ThreadPool::ThreadPool(int thread_num, const fdemo::binlogparse::SlaveInfo& slaveinfo){
     Maxnum_ = thread_num;
     IsRunning_ = true;
     for(int i = 0;i<thread_num;i++){
@@ -13,16 +13,12 @@ ThreadPool::ThreadPool(int thread_num){
         kv.first = i;
         task_map_.insert(kv);
     }
+    createMysqlConnects(slaveinfo);
     createThreads();
 }
+
 ThreadPool::~ThreadPool() {
     stop();
-    for(std::map<int,std::deque<Runable*>>::iterator loop = task_map_.begin(); loop != task_map_.end(); loop++){
-        for(std::deque<Runable*>::iterator loop1 = loop->second.begin(); loop1 != loop->second.end();loop1++) {
-            delete *loop1;
-        }
-        loop->second.clear();
-    }
 }
 
 void ThreadPool::createThreads() {
@@ -38,6 +34,12 @@ void ThreadPool::createThreads() {
         TakeTask* threadRrg = new TakeTask{this, i};
         LOG(INFO)<<"taketask i:"<<threadRrg->taskQueneId;
         pthread_create(&threads_[i], NULL, &ThreadPool::proc, (void*)threadRrg );
+    }
+}
+
+void ThreadPool::createMysqlConnects(const fdemo::binlogparse::SlaveInfo& slaveinfo){
+    for(int i = 0; i < Maxnum_; i++){
+        mysqlConnect_.push_back(new fdemo::mockslave::SlaveHandler(slaveinfo));      
     }
 }
 
@@ -72,6 +74,7 @@ void ThreadPool::stop(){
     for(size_t i = 0; i < conditions_.size(); i++){
         pthread_cond_signal(&conditions_[i]);
     }
+    //terminate each thread
     for(int i = 0; i<Maxnum_;i++) {
         pthread_join(threads_[i], NULL);
     }
@@ -81,7 +84,17 @@ void ThreadPool::stop(){
     for(size_t i = 0; i < conditions_.size(); i++){
         pthread_cond_destroy(&conditions_[i]);
     }
-    //pthread_cond_destroy(&condition_);
+    //destroy mysql connects
+    for(size_t i =0; i< mysqlConnect_.size(); i++){
+        delete mysqlConnect_[i];
+    }
+    //destory task map
+    for(std::map<int,std::deque<Runable*>>::iterator loop = task_map_.begin(); loop != task_map_.end(); loop++){
+        for(std::deque<Runable*>::iterator loop1 = loop->second.begin(); loop1 != loop->second.end();loop1++) {
+            delete *loop1;
+        }
+        loop->second.clear();
+    }
 
 }
 
@@ -138,6 +151,14 @@ void* ThreadPool::proc(void *arg) {
     }
     delete takeArg;
     return NULL;
+}
+
+
+fdemo::mockslave::SlaveHandler* ThreadPool::getMysqlConnect(int taskMapId){
+    if(taskMapId >= Maxnum_){
+        return NULL;
+    }
+    return mysqlConnect_[taskMapId];
 }
 
 } //namespace common

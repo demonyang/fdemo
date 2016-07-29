@@ -19,6 +19,9 @@ int SlaveHandler::Connect(const std::string& host, int port, const std::string& 
         return -1;
     }
 
+    my_bool my_true = true;
+    mysql_options(conn_, MYSQL_OPT_RECONNECT, &my_true);
+
     if(mysql_real_connect(conn_, host.c_str(), user.c_str(), passwd.c_str(), NULL, port, NULL, 0) == NULL) {
         LOG(ERROR)<<"mysql_real_connect error, host: "<<host.c_str()<<" port: "<<port;
         return -1;
@@ -29,6 +32,7 @@ int SlaveHandler::Connect(const std::string& host, int port, const std::string& 
 }
 
 bool SlaveHandler::ExecuteSql(const char* sql, int len){
+    LOG(INFO)<<"sql: "<<sql<<" ,len: "<< len;
     if(mysql_real_query(conn_, sql, len) != 0){
         LOG(ERROR)<<"execute err: "<<mysql_error(conn_);
         return false;

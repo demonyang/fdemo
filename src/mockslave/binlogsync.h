@@ -23,7 +23,6 @@ public:
 private:
     fdemo::binlogparse::MysqlMeta meta_;
     fdemo::common::ThreadPool* pool_;
-    SlaveHandler *sqlhandler_;
 };
 
 class EventHandler: public fdemo::common::Runable {
@@ -45,7 +44,7 @@ private:
 class SingleEventHandler: public fdemo::common::Runable {
 public:
     SingleEventHandler(const fdemo::binlogparse::RowsEvent& event ,fdemo::binlogparse::RowValue row, SlaveHandler* sh) : row_(row), event_(event), sh_(sh) {}
-    virtual ~SingleEventHandler() {}
+    virtual ~SingleEventHandler() { delete sh_; }
     virtual void run();
 
 private:
