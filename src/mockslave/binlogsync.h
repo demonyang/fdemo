@@ -14,11 +14,12 @@ namespace mockslave{
 class BinlogSync: public fdemo::binlogparse::EventAction {
 public:
     BinlogSync(fdemo::utils::XmlConfig xml);
-    virtual ~BinlogSync();
+    virtual ~BinlogSync(){ Stop(); }
     virtual void run();
 
     virtual int onRowsEvent(const fdemo::binlogparse::RowsEvent& event, std::vector<fdemo::binlogparse::RowValue>& rows);
     //virtual int onQueryEvent();
+    virtual void Stop() { delete pool_; }
 
 private:
     fdemo::binlogparse::MysqlMeta meta_;
@@ -44,7 +45,7 @@ private:
 class SingleEventHandler: public fdemo::common::Runable {
 public:
     SingleEventHandler(const fdemo::binlogparse::RowsEvent& event ,fdemo::binlogparse::RowValue row, SlaveHandler* sh) : row_(row), event_(event), sh_(sh) {}
-    virtual ~SingleEventHandler() { delete sh_; }
+    virtual ~SingleEventHandler() {}
     virtual void run();
 
 private:

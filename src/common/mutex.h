@@ -5,6 +5,7 @@
 #include "string.h"
 #include "stdlib.h"
 #include "stdio.h"
+#include "glog/logging.h"
 
 namespace common {
 
@@ -63,11 +64,13 @@ private:
 class MutexLock {
 public:
     explicit MutexLock(Mutex *mu, const char * msg=NULL) :mu_(mu) {
+        LOG(INFO)<<"start of lock";
         mu_->Lock(msg);
     }
 
     ~MutexLock() {
         mu_->Unlock();
+        LOG(INFO)<<"end of lock";
     }
 
 private:

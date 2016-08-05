@@ -31,6 +31,8 @@ struct SlaveInfo{
 
 class MysqlMeta{
 public:
+    MysqlMeta(){}
+    ~MysqlMeta(){}
     void init(fdemo::utils::XmlConfig& xml);
 public:
     BinlogInfo srcMysqlInfo_;

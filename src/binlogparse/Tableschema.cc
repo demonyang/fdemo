@@ -228,6 +228,7 @@ TableSchema::~TableSchema() {
     for(size_t i = 0; i<columns_.size();++i) {
         delete columns_[i];
     }
+    pk_.clear();
 }
 
 //TableSchema

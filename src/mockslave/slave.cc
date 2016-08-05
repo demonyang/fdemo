@@ -14,7 +14,7 @@ SlaveHandler::SlaveHandler(const fdemo::binlogparse::SlaveInfo& slaveinfo){
 
 int SlaveHandler::Connect(const std::string& host, int port, const std::string& user, const std::string& passwd){
 
-    mysql_thread_init();
+    //mysql_thread_init();
     if((conn_ = mysql_init(NULL)) == NULL){
         return -1;
     }
@@ -47,7 +47,7 @@ void SlaveHandler::Close(){
         conn_ = NULL;
     }
 
-    mysql_thread_end();
+    //mysql_thread_end();
 }
 
 } // namespace slave

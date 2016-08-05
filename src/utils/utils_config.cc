@@ -5,15 +5,11 @@
 namespace fdemo{
 namespace utils{
 
-XmlConfig::~XmlConfig(){
-    delete doc_;
-}
-
 void XmlConfig::loadFile(const char* path) {
-    doc_ = new TiXmlDocument(path);
-    doc_->LoadFile();
+    doc_ = TiXmlDocument(path);
+    doc_.LoadFile();
 
-    root_ = doc_->RootElement();
+    root_ = doc_.RootElement();
 }
 
 const char* XmlConfig::getNode(const char* nodePath) {

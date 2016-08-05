@@ -43,6 +43,10 @@ enum FieldType {
     fieldTypeGeometry = 0xff,
 };
 
+enum BinlogErr {
+    ERR_EOF = 0xfe,
+};
+
 struct LogEvent{
     enum Type {
         UNKNOWN_EVENT = 0x00,

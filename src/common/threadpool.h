@@ -41,11 +41,11 @@ private:
 
     std::deque<Runable*> task_list_;
     std::map<int, std::deque<Runable*>> task_map_;
-    Mutex state_lock_;
+    //Mutex state_lock_;
     int Maxnum_;
     //pthread_cond_t condition_;
     std::vector<pthread_cond_t> conditions_;
-    pthread_mutex_t mutex_;
+    std::vector<pthread_mutex_t> mutexs_;
     volatile bool IsRunning_;
 
     //fixed nums of mysql connector

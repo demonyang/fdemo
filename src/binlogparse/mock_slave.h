@@ -46,7 +46,7 @@ class MockSlave {
 
 public:
     MockSlave(){}
-    ~MockSlave(){}
+    ~MockSlave(){ Close(); }
 
     int Connect(const std::string& host, int port, const std::string& user, const std::string& passwd);
     int DumpBinlog(uint32_t ServerId, const std::string& filename, uint32_t offset);

@@ -22,11 +22,13 @@ ThreadPool::~ThreadPool() {
 }
 
 void ThreadPool::createThreads() {
-    pthread_mutex_init(&mutex_, NULL);
     for(int i = 0; i < Maxnum_; i++){
         pthread_cond_t condition;
         pthread_cond_init(&condition, NULL);
         conditions_.push_back(condition);
+        pthread_mutex_t mutex;
+        pthread_mutex_init(&mutex, NULL);
+        mutexs_.push_back(mutex);
     }
     //pthread_cond_init(&condition_, NULL);
     threads_ = (pthread_t*)malloc(sizeof(pthread_t) * Maxnum_);
@@ -44,7 +46,6 @@ void ThreadPool::createMysqlConnects(const fdemo::binlogparse::SlaveInfo& slavei
 }
 
 size_t ThreadPool::AddTask(Runable* func) {
-    MutexLock mutex(&state_lock_);
     task_list_.push_back(func);
     int size = task_list_.size();
     //pthread_cond_signal(&condition_);
@@ -52,19 +53,20 @@ size_t ThreadPool::AddTask(Runable* func) {
 }
 
 size_t ThreadPool::AddTask2TaskMap(Runable* func, int taskMapId){
-    MutexLock mutex(&state_lock_);
+    pthread_mutex_lock(&mutexs_[taskMapId]);
     std::map<int, std::deque<Runable*>>::iterator it = task_map_.find(taskMapId);
     if(it == task_map_.end()) {
         return -1;
     }
     it->second.push_back(func);
+    pthread_mutex_unlock(&mutexs_[taskMapId]);
     int size = it->second.size();
     pthread_cond_signal(&conditions_[taskMapId]);
     return size;
 }
 
 void ThreadPool::stop(){
-    MutexLock mutex(&state_lock_);
+    LOG(INFO)<<"in pool stop";
     if (!IsRunning_) {
         return;
     }
@@ -80,9 +82,9 @@ void ThreadPool::stop(){
     }
     free(threads_);
     threads_ = NULL;
-    pthread_mutex_destroy(&mutex_);
     for(size_t i = 0; i < conditions_.size(); i++){
         pthread_cond_destroy(&conditions_[i]);
+        pthread_mutex_destroy(&mutexs_[i]);
     }
     //destroy mysql connects
     for(size_t i =0; i< mysqlConnect_.size(); i++){
@@ -95,11 +97,9 @@ void ThreadPool::stop(){
         }
         loop->second.clear();
     }
-
 }
 
 size_t ThreadPool::size() {
-    MutexLock mutex(&state_lock_);
     int size = 0;
     for(std::map<int, std::deque<Runable*>>::iterator it = task_map_.begin(); it != task_map_.end();it++){
         size += it->second.size();
@@ -111,26 +111,26 @@ Runable* ThreadPool::take(int taskQueneId) {
     Runable * task = NULL;
     std::map<int, std::deque<Runable*>>::iterator taskQuene = task_map_.find(taskQueneId);
     while(!task) {
-        pthread_mutex_lock(&mutex_);
+        pthread_mutex_lock(&mutexs_[taskQueneId]);
         while (IsRunning_ && taskQuene->second.empty()) {
             LOG(INFO)<<"pthread_cond_wait, taskQueneId:"<<taskQueneId;
             //pthread_cond_wait()->unlock()->lock()
-            pthread_cond_wait(&conditions_[taskQueneId], &mutex_);
+            pthread_cond_wait(&conditions_[taskQueneId], &mutexs_[taskQueneId]);
         }
         //由于改成多个任务队列，不能使用条件变量,要一直主动去task列表里面取
         if (!IsRunning_) {
-            pthread_mutex_unlock(&mutex_);
+            pthread_mutex_unlock(&mutexs_[taskQueneId]);
             break;
 
         } else if (taskQuene->second.empty()) {
-            pthread_mutex_unlock(&mutex_);
+            pthread_mutex_unlock(&mutexs_[taskQueneId]);
             continue;
         }
         assert(!taskQuene->second.empty());
         LOG(INFO)<<"take a task from "<<taskQueneId;
         task = taskQuene->second.front();
         taskQuene->second.pop_front();
-        pthread_mutex_unlock(&mutex_);
+        pthread_mutex_unlock(&mutexs_[taskQueneId]);
     }
     return task;
 }

@@ -95,7 +95,11 @@ int MockSlave::readEvent(LogEvent* header, ByteArray* body) {
         LOG(ERROR)<<"cli_safe_read error len:"<<len<<"errno:err"<<mysql_error(slave_)<<":"<<mysql_errno(slave_);
         return mysql_errno(slave_);
     }
-    if (slave_->net.read_pos[0] !=0 || slave_->net.read_pos[0] == 255) {
+    //EOF packet
+    //if (slave_->net.read_pos[0] == 254 && len < 9) {
+    //    return ERR_EOF;
+    //}
+    if (slave_->net.read_pos[0] !=0) {
         LOG(ERROR)<<"read_pos[0] errno:err"<<mysql_error(slave_)<<":"<<mysql_errno(slave_);
         return mysql_errno(slave_);
     }

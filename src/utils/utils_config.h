@@ -12,7 +12,7 @@ namespace utils{
 class XmlConfig{
 public:
     XmlConfig() {}
-    ~XmlConfig();
+    ~XmlConfig() {}
 
     void loadFile(const char* path);
     
@@ -21,7 +21,7 @@ public:
 
 private:
     TiXmlElement* root_;
-    TiXmlDocument* doc_;
+    TiXmlDocument doc_;
 };
 
 } // namespace utils

@@ -57,10 +57,6 @@ BinlogSync::BinlogSync(fdemo::utils::XmlConfig xml) {
     pool_ = new fdemo::common::ThreadPool(meta_.poolSize_, meta_.dstMysqlInfo_);
 }
 
-BinlogSync::~BinlogSync(){
-    pool_->stop();
-}
-
 void BinlogSync::run() {
     int rc = 0;
     fdemo::binlogparse::MockSlave reader;
@@ -80,7 +76,6 @@ void BinlogSync::run() {
         LOG(ERROR)<<"MockSlave::run failed";
         return;
     }
-    LOG(INFO)<<"BinlogSync::run end!";
 }
 
 //consider parallel replication
