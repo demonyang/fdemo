@@ -63,7 +63,6 @@ private:
     int setCrc32();
     //parse one row data
     void unpackRow(RowValue *row, RowValueType rvt, const RowsEvent& event, const ByteArray& bytes, TableSchema *table);
-
     
 
 private:

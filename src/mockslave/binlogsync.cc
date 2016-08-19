@@ -1,6 +1,7 @@
 
 #include "mockslave/binlogsync.h"
 
+
 namespace fdemo{
 namespace mockslave{
 
@@ -56,6 +57,31 @@ BinlogSync::BinlogSync(fdemo::utils::XmlConfig xml) {
     //meta_.srcMysqlInfo_ = meta_.srcMysqlInfo_;
     pool_ = new fdemo::common::ThreadPool(meta_.poolSize_, meta_.dstMysqlInfo_);
 }
+
+//void* startMock(void* arg){
+//    LOG(INFO)<<"start of startMock";
+//    BinlogSync* bs = static_cast<BinlogSync*>(arg);   
+//    fdemo::binlogparse::MysqlMeta meta_ = bs->getMeta();
+//    int rc = 0;
+//    fdemo::binlogparse::MockSlave reader;
+//    rc = reader.Connect(meta_.srcMysqlInfo_.host, meta_.srcMysqlInfo_.port, meta_.srcMysqlInfo_.user, meta_.srcMysqlInfo_.passwd);
+//    if(rc != 0) {
+//        LOG(ERROR)<<"Connect host:"<<meta_.srcMysqlInfo_.host<<", port:"<<meta_.srcMysqlInfo_.port<<"failed";    
+//        return NULL;
+//    }
+//
+//    rc = reader.DumpBinlog(meta_.srcMysqlInfo_.server_id, meta_.srcMysqlInfo_.default_file, meta_.srcMysqlInfo_.default_offset);
+//    if(rc != 0) {
+//        LOG(ERROR)<<"DumpBinlog failed,file:"<<meta_.srcMysqlInfo_.default_file<<", offset:"<<meta_.srcMysqlInfo_.default_offset;
+//        return NULL;
+//    }
+//    rc = reader.run(bs);
+//    if(rc != 0) {
+//        LOG(ERROR)<<"MockSlave::run failed";
+//        return NULL;
+//    }
+//    return NULL;
+//}
 
 void BinlogSync::run() {
     int rc = 0;

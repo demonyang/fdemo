@@ -20,6 +20,7 @@ public:
     virtual int onRowsEvent(const fdemo::binlogparse::RowsEvent& event, std::vector<fdemo::binlogparse::RowValue>& rows);
     //virtual int onQueryEvent();
     virtual void Stop() { delete pool_; }
+    virtual fdemo::binlogparse::MysqlMeta getMeta() { return meta_; }
 
 private:
     fdemo::binlogparse::MysqlMeta meta_;

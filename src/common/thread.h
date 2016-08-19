@@ -39,7 +39,7 @@ private:
 };
 
 class Thread {
-
+public:
     static void * proc(void *arg) {
         RunableFunc *r = static_cast<RunableFunc*>(arg); //cast(强制转换) arg to RunableFunc*
         r->run();

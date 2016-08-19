@@ -71,6 +71,7 @@ int MockSlave::DumpBinlog(uint32_t ServerId, const std::string& filename, uint32
     return 0;
 }
 
+
 int MockSlave::run(EventAction* eventaction) {
     int rc = -1;
     LogEvent header;
@@ -379,6 +380,7 @@ void MockSlave::Close() {
     }
 
     mysql_thread_end();
+    LOG(INFO)<<"close MockSlave's mysql";
 }
 
 } // namespace binlogparse

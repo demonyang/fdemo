@@ -150,6 +150,7 @@ void* ThreadPool::proc(void *arg) {
         run_func->run();
     }
     delete takeArg;
+    LOG(INFO)<<"end of "<<pthread_self();
     return NULL;
 }
 
